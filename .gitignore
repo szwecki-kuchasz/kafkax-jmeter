@@ -1,0 +1,3 @@
+# Project exclude paths
+/kafkax-jmeter-core/target/
+/kafkax-jmeter-examples/target/

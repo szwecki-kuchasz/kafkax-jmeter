@@ -1,0 +1,47 @@
+{
+  "namespace": "pl.w93c.kafkaxjmeter.examples.weather",
+  "type": "record",
+  "name": "Weather",
+  "doc": "Weather data record",
+  "fields": [
+    {
+      "name": "place",
+      "doc": "Place description",
+      "type": "string",
+      "order": "ignore"
+    },
+    {
+      "name": "time",
+      "doc": "Time - millis since Jan 1 1970",
+      "type": "long"
+    },
+    {
+      "name": "temperature",
+      "doc": "Temperature value",
+      "type": "int"
+    },
+    {
+      "name": "temperatureUnit",
+      "doc": "Temperature unit",
+       "type": {
+                 "type": "enum",
+                 "name": "TemperatureUnit",
+                 "symbols" : ["C", "F"]
+               }
+    },
+    {
+      "name": "pressure",
+      "doc": "Pressure value",
+      "type": "int"
+    },
+     {
+       "name": "pressureUnit",
+       "doc": "Pressure unit",
+       "type": {
+                 "type": "enum",
+                 "name": "PressureUnit",
+                 "symbols" : ["mmHg", "hPa"]
+               }
+     }
+  ]
+}

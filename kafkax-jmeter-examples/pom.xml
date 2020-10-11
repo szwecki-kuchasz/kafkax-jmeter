@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>kafkax-jmeter</artifactId>
+    <groupId>pl.w93c.kafkax-jmeter</groupId>
+    <version>1.6.0</version>
+  </parent>
+
+  <groupId>pl.w93c.kafkax-jmeter</groupId>
+  <artifactId>kafkax-jmeter-examples</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>examplez</name>
+  <!-- FIXME change it to the project's website -->
+  <url>http://www.example.com</url>
+
+  <properties>
+    <avro.version>1.8.2</avro.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jmeter</groupId>
+      <artifactId>ApacheJMeter_core</artifactId>
+      <version>5.3</version>
+      <scope>provided</scope>
+      <exclusions/>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jmeter</groupId>
+      <artifactId>ApacheJMeter_java</artifactId>
+      <version>5.3</version>
+      <scope>provided</scope>
+      <exclusions/>
+    </dependency>
+    <dependency>
+      <groupId>pl.w93c.kafkax-jmeter</groupId>
+      <artifactId>kafkax-jmeter-core</artifactId>
+      <version>1.6.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+      <plugins>
+        <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+        <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.0.2</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.22.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.0.2</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>2.5.2</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8.2</version>
+        </plugin>
+        <!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.7.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-maven-plugin</artifactId>
+        <version>1.8.2</version>
+        <!--global plugin configuration which used for run goal separately-->
+        <configuration>
+          <!--The Avro source directory for schema, protocol and IDL files.-->
+          <sourceDirectory>src/main/resources/avro/</sourceDirectory>
+          <!--The directory where Avro writes code-generated sources. IMPORTANT!! -->
+          <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
+          <!--The input directory containing any Avro files used in testing.-->
+          <testSourceDirectory>${project.basedir}/src/test/avro/</testSourceDirectory>
+          <!--The output directory where Avro writes code-generated files for your testing purposes.-->
+          <testOutputDirectory>${project.basedir}/src/test/java/</testOutputDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <!--
+            IMPORTANT: Because this configuration is set in the execution with phase `generate-sources`.
+            So only run compile or package which include this phase will apply this configuration.
+            So if only make this configuration, run `mvn avro:schema` will only generate to the target
+            folder with default configuration.
+            -->
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schema</goal>
+              <!--If you want to generate other code, need add more goals-->
+              <goal>protocol</goal>
+              <goal>idl-protocol</goal>
+            </goals>
+            <!---->
+            <configuration>
+              <!--default is ${basedir}/src/main/avro
+              The Avro source directory for schema, protocol and IDL files.-->
+              <sourceDirectory>src/main/resources/avro/</sourceDirectory>
+
+              <!--default is ${project.build.directory}/generated-sources/avro
+               The directory where Avro writes code-generated sources. IMPORTANT!! -->
+              <outputDirectory>${project.basedir}/target/generated-sources/</outputDirectory>
+
+              <!--default is ${basedir}/src/test/avro
+              The input directory containing any Avro files used in testing.-->
+              <testSourceDirectory>src/test/resources/avro/</testSourceDirectory>
+
+              <!--default is ${project.build.directory}/generated-test-sources/avro
+              The output directory where Avro writes code-generated files for your testing purposes.-->
+              <testOutputDirectory>${project.basedir}/target/generated-test-sources/</testOutputDirectory>
+
+              <!--fieldVisibility PUBLIC_DEPRECATED
+              Determines the accessibility of fields (e.g. whether they are public or private).
+              Must be one of PUBLIC, PUBLIC_DEPRECATED or PRIVATE. PUBLIC_DEPRECATED merely
+              adds a deprecated annotation to each field, e.g. "@Deprecated public long time".-->
+
+
+              <!--In addition, the includes and testIncludes configurables can also be used to
+              specify alternative file extensions to the defaults, which are **/*.avsc, **/*.avpr
+              and **/*.avdl for schema, protocol and IDL files respectively.-->
+              <!--<includes>-->
+              <!--<include>**/*.av*</include>-->
+              <!--</includes>-->
+              <!--<testIncludes>-->
+              <!--<testInclude>**/*.test</testInclude>-->
+              <!--</testIncludes>>-->
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
