@@ -1,12 +1,5 @@
 package pl.w93c.kafkaxjmeter;
 
-/**
- * Abstract JMeter sampler, that knows something about Kafka...
- * Specializations may produce or consume
- * Inspiration and fragments of this class from repo:
- * https://github.com/BrightTag/kafkameter
- */
-
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.protocol.java.sampler.AbstractJavaSamplerClient;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
@@ -20,8 +13,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.isEmpty;
+
 /**
- *
+ * Abstract JMeter sampler, that knows something about Kafka...
+ * Specializations may produce or consume
+ * Inspiration and fragments of this class from repo:
+ * https://github.com/BrightTag/kafkameter
  */
 public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
     /**
@@ -150,16 +148,12 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         }
 
         String compressionType = context.getParameter(PARAMETER_KAFKA_COMPRESSION_TYPE);
-        if (stringIsNotEmpty(compressionType)) {
+        if (!isEmpty(compressionType)) {
             props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, compressionType);
         }
 
         mock = Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(PARAMETER_KAFKA_MOCK));
 
-    }
-
-    protected final boolean stringIsNotEmpty(String s) {
-        return s != null && !EMPTY_VALUE.equals(s.trim());
     }
 
     protected abstract String getResultData(JavaSamplerContext context);

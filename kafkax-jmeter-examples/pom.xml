@@ -98,6 +98,8 @@
         <version>1.8.2</version>
         <!--global plugin configuration which used for run goal separately-->
         <configuration>
+          <!-- All fields declared in AVSC as "logicalType": "decimal" will be converted to BigDecimal fields in Java classes -->
+          <enableDecimalLogicalType>true</enableDecimalLogicalType>
           <!--The Avro source directory for schema, protocol and IDL files.-->
           <sourceDirectory>src/main/resources/avro/</sourceDirectory>
           <!--The directory where Avro writes code-generated sources. IMPORTANT!! -->

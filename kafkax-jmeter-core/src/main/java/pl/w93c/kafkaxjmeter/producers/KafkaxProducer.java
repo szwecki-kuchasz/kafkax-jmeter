@@ -24,6 +24,8 @@ import pl.w93c.kafkaxjmeter.KafkaxSampler;
 
 import java.util.Map;
 
+import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.isEmpty;
+
 /**
  * A {@link org.apache.jmeter.samplers.Sampler Sampler} which produces Kafka messages.
  *
@@ -84,7 +86,7 @@ public abstract class KafkaxProducer extends KafkaxSampler {
         final ProducerRecord<String, byte[]> producerRecord;
         byte[] bytes = getBytes(context);
         if (!isMock() && producer != null) {
-            if (!stringIsNotEmpty(partitionString)) {
+            if (isEmpty(partitionString)) {
                 producerRecord = new ProducerRecord<>(topic, key, bytes);
             } else {
                 final int partitionNumber = Integer.parseInt(partitionString);
