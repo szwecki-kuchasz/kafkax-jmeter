@@ -57,7 +57,6 @@ public abstract class KafkaxProducer extends KafkaxSampler {
     @Override
     public void setupTest(JavaSamplerContext context) {
         super.setupTest(context);
-
         if (isMock()) {
             producer = null;
         } else {
@@ -71,6 +70,7 @@ public abstract class KafkaxProducer extends KafkaxSampler {
             producer.close();
         }
         producer = null;
+        super.teardownTest(context);
     }
 
     @Override

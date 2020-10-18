@@ -78,7 +78,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
     private boolean mock;
 
-    public final boolean isMock() {
+    protected final boolean isMock() {
         return mock;
     }
 
@@ -120,7 +120,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         return context.getParameter(name);
     }
 
-    private Properties props = new Properties();
+    private final Properties props = new Properties();
 
     protected final Properties getProps() {
         return props;
@@ -160,20 +160,23 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
     @Override
     public final SampleResult runTest(JavaSamplerContext context) {
+        beforeRun(context);
         SampleResult sampleResult = newSampleResult();
         sampleResultStart(sampleResult, getResultData(context));
-
         try {
             runTestImpl(context, sampleResult);
             sampleResultSuccess(sampleResult); // , null);
         } catch (Exception e) {
-            // https://www.baeldung.com/java-stacktrace-to-string
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-            sampleResultFailed(sampleResult, sw.toString(), e);
+            sampleResultFailed(sampleResult, getStackTrace(e), e);
         }
+        afterRun(context);
         return sampleResult;
+    }
+
+    protected  void beforeRun(JavaSamplerContext context) {
+    }
+
+    protected  void afterRun(JavaSamplerContext context) {
     }
 
     protected abstract void runTestImpl(JavaSamplerContext context, SampleResult result) throws Exception;
@@ -211,35 +214,20 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         result.sampleEnd();
         result.setSuccessful(true);
         result.setResponseCodeOK();
-//        if (response != null) {
-//            result.setResponseData(response, ENCODING);
-//        } else {
-//            result.setResponseData("No response required", ENCODING);
-//        }
-    }
-
-    /**
-     * Mark the sample result as @{code end}ed and not {@code successful}, and set the
-     * {@code responseCode} to {@code reason}.
-     *
-     * @param result the sample result to change
-     * @param reason the failure reason
-     */
-    private void sampleResultFailed(SampleResult result, String reason) {
-        result.sampleEnd();
-        result.setSuccessful(false);
-        result.setResponseCode(reason);
     }
 
     /**
      * Mark the sample result as @{code end}ed and not {@code successful}, set the
      * {@code responseCode} to {@code reason}, and set {@code responseData} to the stack trace.
      *
-     * @param result    the sample result to change
+     * @param result the sample result to change
+     * @param reason  the failure reason
      * @param exception the failure exception
      */
     private void sampleResultFailed(SampleResult result, String reason, Exception exception) {
-        sampleResultFailed(result, reason);
+        result.sampleEnd();
+        result.setSuccessful(false);
+        result.setResponseCode(reason);
         result.setResponseMessage("Exception: " + exception);
         result.setResponseData(getStackTrace(exception), ENCODING);
     }
@@ -251,6 +239,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
      * @return the stack trace
      */
     private String getStackTrace(Exception exception) {
+        // https://www.baeldung.com/java-stacktrace-to-string
         StringWriter stringWriter = new StringWriter();
         exception.printStackTrace(new PrintWriter(stringWriter));
         return stringWriter.toString();

@@ -14,6 +14,14 @@ import java.io.IOException;
 
 public abstract class KafkaxSpecificAvroProducer<T extends SpecificRecord> extends KafkaxProducer {
 
+    private T specificRecord;
+
+    @Override
+    protected void beforeRun(JavaSamplerContext context) {
+        super.beforeRun(context);
+        specificRecord = createSpecificRecord(context);
+    }
+
     @Override
     protected byte[] getBytes(JavaSamplerContext context) throws IOException {
         T record = getSpecificRecord(context);
@@ -21,24 +29,19 @@ public abstract class KafkaxSpecificAvroProducer<T extends SpecificRecord> exten
         BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(stream, null);
         SpecificData specificData = new SpecificData();
         specificData.addLogicalTypeConversion(new Conversions.DecimalConversion());
-        DatumWriter<T> datumWriter = new SpecificDatumWriter<T>(record.getSchema(), specificData);
+        DatumWriter<T> datumWriter = new SpecificDatumWriter<>(record.getSchema(), specificData);
         datumWriter.write(record, encoder);
         encoder.flush();
         return stream.toByteArray();
     }
 
-    @Override
-    protected String getMessage(JavaSamplerContext context) {
-        return getSpecificRecord(context).toString();
+    private T getSpecificRecord(JavaSamplerContext context) {
+        return specificRecord;
     }
 
-    private T specificRecord;
-
-    protected final T getSpecificRecord(JavaSamplerContext context) {
-        if (specificRecord == null) {
-             specificRecord = createSpecificRecord(context);
-        }
-        return specificRecord;
+    @Override
+    protected String getMessage(JavaSamplerContext context) {
+        return specificRecord.toString();
     }
 
     protected abstract T createSpecificRecord(JavaSamplerContext context);

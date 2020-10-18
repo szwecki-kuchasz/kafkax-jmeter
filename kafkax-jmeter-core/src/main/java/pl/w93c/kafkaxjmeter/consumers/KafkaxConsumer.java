@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import pl.w93c.kafkaxjmeter.KafkaxSampler;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,9 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
     protected void populateParams(Map<String, String> map) {
         super.populateParams(map);
         map.put(PARAMETER_KAFKA_CONSUMER_GROUP, "${PARAMETER_KAFKA_CONSUMER_GROUP}");
-        map.put(LIMIT, "${PARAMETER_KAFKA_CONSUMER_GROUP_POLL_RECORDS_LIMIT}");
-        map.put(POLL_TIME, "${PARAMETER_KAFKA_CONSUMER_GROUP_POLL_TIME}");
-        map.put(TOTAL_POLL_TIME, "${PARAMETER_KAFKA_CONSUMER_GROUP_TOTAL_POLL_TIME}");
+        map.put(LIMIT, "${PARAMETER_KAFKA_CONSUMER_POLL_RECORDS_LIMIT}");
+        map.put(POLL_TIME, "${PARAMETER_KAFKA_CONSUMER_POLL_TIME}");
+        map.put(TOTAL_POLL_TIME, "${PARAMETER_KAFKA_CONSUMER__TOTAL_POLL_TIME}");
     }
 
     @Override
@@ -65,7 +66,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         String topic = getParam(context, PARAMETER_KAFKA_TOPIC);
         List<String> topics = getTopics(topic);
 
-        sampleResult.setRequestHeaders("topics:"+topic + "\nmax records:" + limit + "\n pollTime:" + pollTime + "\n totalPollTime:" + totalPollTime
+        sampleResult.setRequestHeaders("topics:" + topic + "\nmax records:" + limit + "\n pollTime:" + pollTime + "\n totalPollTime:" + totalPollTime
                 + "\nmock:" + isMock());
 
         if (!isMock() && consumer != null) {
@@ -79,29 +80,30 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
 
             boolean enough = false, timeIsOver = false;
 
-            do {
-                ConsumerRecords<String, byte[]> consumerRecords = consumer.poll(pollTime);// Duration.ofMillis(pollTime));
+            while (!timeIsOver
+                    && !enough
+                    && true // TODO: look at whole scenario conditions
+            ) {
+                ConsumerRecords<String, byte[]> consumerRecords = consumer.poll(Duration.ofMillis(pollTime));
                 int recCount = consumerRecords.count();
                 if (recCount > 0) {
-                    for (ConsumerRecord<String, byte[]> record: consumerRecords) {
+                    for (ConsumerRecord<String, byte[]> record : consumerRecords) {
                         processRecord(totalRecords, record.key(), record.value(), sampleResult);
-                        if (++totalRecords >= limit) {
-                            enough = true;
-
-                            break;
-                        };
                     }
-                } else {
+                    if ((totalRecords += recCount) >= limit) {
+                        enough = true;
+                        break;
+                    };
                 }
                 stopTime = System.currentTimeMillis();
                 timeIsOver = stopTime > startTime + totalPollTime;
-            } while (!timeIsOver && !enough);
+            };
 
             sb.append('\n').append("stopTime:").append(stopTime)
-            .append('\n').append("recordCount:").append(totalRecords)
-            .append('\n').append("duration:").append(stopTime-startTime)
-            .append('\n').append("enough:").append(enough)
-            .append('\n').append("timeIsOver").append(timeIsOver)
+                    .append('\n').append("recordCount:").append(totalRecords)
+                    .append('\n').append("duration:").append(stopTime - startTime)
+                    .append('\n').append("enough:").append(enough)
+                    .append('\n').append("timeIsOver").append(timeIsOver)
             ;
             sampleResult.setResponseHeaders(sb.toString());
 

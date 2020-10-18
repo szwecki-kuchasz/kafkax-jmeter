@@ -5,6 +5,7 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -52,10 +53,10 @@ public class ParamsParser {
             try {
                 // najpierw próbujemy jako liczbe bez ułamka, żeby nie wprowadzać zbędnie scale = 1 z double'a
                 return BigDecimal.valueOf(Long.valueOf(text));
-            } catch (RuntimeException e1) {
+            } catch (NumberFormatException e1) {
                 return BigDecimal.valueOf(Double.valueOf(text));
             }
-        } catch (RuntimeException e) {
+        } catch (NumberFormatException e) {
             return BigDecimal.ZERO;
         }
     }
@@ -64,7 +65,7 @@ public class ParamsParser {
         try {
             Date dd = SIMPLE_DATE_FORMAT.parse(text);
             return new LocalDateTime(dd.getTime());
-        } catch (Exception e) {
+        } catch (ParseException e) {
             return new LocalDateTime();
         }
     }

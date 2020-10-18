@@ -1,6 +1,5 @@
 package pl.w93c.kafkaxjmeter.examples;
 
-import com.kitfox.svg.A;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.junit.Test;
@@ -9,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class NotSoSimpleStringProducerTest {
 
