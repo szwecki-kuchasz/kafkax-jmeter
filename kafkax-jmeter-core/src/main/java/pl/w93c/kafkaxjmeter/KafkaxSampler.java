@@ -160,8 +160,8 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
     @Override
     public final SampleResult runTest(JavaSamplerContext context) {
-        beforeRun(context);
         SampleResult sampleResult = newSampleResult();
+        beforeRun(context, sampleResult);
         sampleResultStart(sampleResult, getResultData(context));
         try {
             runTestImpl(context, sampleResult);
@@ -169,14 +169,14 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         } catch (Exception e) {
             sampleResultFailed(sampleResult, getStackTrace(e), e);
         }
-        afterRun(context);
+        afterRun(context, sampleResult);
         return sampleResult;
     }
 
-    protected  void beforeRun(JavaSamplerContext context) {
+    protected  void beforeRun(JavaSamplerContext context, SampleResult sampleResult) {
     }
 
-    protected  void afterRun(JavaSamplerContext context) {
+    protected  void afterRun(JavaSamplerContext context, SampleResult sampleResult) {
     }
 
     protected abstract void runTestImpl(JavaSamplerContext context, SampleResult result) throws Exception;
