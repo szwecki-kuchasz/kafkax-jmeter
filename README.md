@@ -59,6 +59,6 @@ Example specialization of KafkaxStringSampler.
 Example specialization of KafkaxSpecificAvroProducer
 Knows: serializes objects of class Weather, generated from schema weather.avsc. Attributes of this objects are added to overriden populateParams method and provided in JMeter GUI
 
-## WeatherKafkaxProducer
+## WeatherKafkaxConsumer
 Example specialization of KafkaxSpecificAvroConsumer
 Knows: deserializes objects of class Weather, generated from schema weather.avsc
