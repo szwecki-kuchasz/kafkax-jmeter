@@ -17,6 +17,7 @@ package pl.w93c.kafkaxjmeter.producers;
 
 //import com.google.common.base.Strings;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
+import org.apache.jmeter.samplers.SampleResult;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import pl.w93c.kafkaxjmeter.KafkaxSampler;
@@ -101,6 +102,20 @@ public abstract class KafkaxProducer extends KafkaxSampler {
             }
             producer.send(producerRecord);
         }
+
+        kafkaxRun.getPostconditions().setSampleCount(1);
+        kafkaxRun.getPostconditions().setSize((long)bytes.length);
+    }
+
+    @Override
+    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
+        // cut this
+        sampleResult.setRequestHeaders(run.getPreconditions().toString());
+        sampleResult.setResponseHeaders(run.getPostconditions().toString());
+        final String payload = run.getPayload().toString();
+        sampleResult.setSamplerData(payload);
+        sampleResult.setResponseData("No response data for Producer", ENCODING);
+        sampleResult.setSentBytes(run.getPostconditions().getSize());
     }
 
     protected abstract byte[] getBytes(JavaSamplerContext context) throws Exception;

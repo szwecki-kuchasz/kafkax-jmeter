@@ -77,7 +77,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
     /**
      * Use UTF-8 for encoding of strings
      */
-    private static final String ENCODING = "UTF-8";
+    protected static final String ENCODING = "UTF-8";
     protected static final String NOT_SET_YET = "value not set yet";
 
     private boolean mock;
@@ -165,24 +165,24 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
     @Override
     public final SampleResult runTest(JavaSamplerContext context) {
+
         KafkaxRun run = createRun();
+        SampleResult sampleResult = newSampleResult();
 
-        KafkaxSamplerResult sampleResult = newSampleResult();
-        beforeRun(context, sampleResult);
+        beforeRun(context, sampleResult, run);
 
-        // sampleResultStart(sampleResult, getResultData(context)); zastąpione poniższym (zredukowane):
         sampleResult.sampleStart();
 
         try {
             runTestImpl(context, run);
-            sampleResultSuccess(sampleResult); // , null);
-        } catch (Exception e) {
-            sampleResultFailed(sampleResult, getStackTrace(e), e);
-        }
-        afterRun(context, sampleResult);
 
-        sampleResult.setResponseData(run.toString(), ENCODING);
-        sampleResult.setResponseHeaders(run.toString());
+            run.getKafkaParameters().setEndTime(System.currentTimeMillis());
+            afterSuccess(sampleResult);
+
+        } catch (Exception e) {
+            afterFail(sampleResult, getStackTrace(e), e);
+        }
+        afterRun(context, sampleResult, run);
 
         return sampleResult;
     }
@@ -204,7 +204,6 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                         .build()
                 )
                 .setPostconditions(KafkaxPostconditions.newBuilder()
-                        .setTBD(NOT_SET_YET)
                         .build()
                 )
                 .build();
@@ -225,11 +224,12 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         );
     }
 
-    protected void beforeRun(JavaSamplerContext context, SampleResult sampleResult) {
+    protected void beforeRun(JavaSamplerContext context, SampleResult result, KafkaxRun run) {
+        result.setDataEncoding(ENCODING);
+        result.setDataType(SampleResult.TEXT);
     }
 
-    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult) {
-    }
+    protected abstract void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run);
 
     protected abstract void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception;
 
@@ -238,10 +238,8 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
      *
      * @return
      */
-    private KafkaxSamplerResult newSampleResult() {
-        KafkaxSamplerResult result = new KafkaxSamplerResult();
-        result.setDataEncoding(ENCODING);
-        result.setDataType(SampleResult.TEXT);
+    private SampleResult newSampleResult() {
+        SampleResult result = new SampleResult();
         return result;
     }
 
@@ -253,7 +251,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
      * @param result sample result to change
      *               //     * @param response the successful result message, may be null.
      */
-    private void sampleResultSuccess(SampleResult result) {
+    private void afterSuccess(SampleResult result) {
         result.sampleEnd();
         result.setSuccessful(true);
         result.setResponseCodeOK();
@@ -267,7 +265,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
      * @param reason    the failure reason
      * @param exception the failure exception
      */
-    private void sampleResultFailed(SampleResult result, String reason, Exception exception) {
+    private void afterFail(SampleResult result, String reason, Exception exception) {
         result.sampleEnd();
         result.setSuccessful(false);
         result.setResponseCode(reason);

@@ -1,6 +1,7 @@
 package pl.w93c.kafkaxjmeter.consumers;
 
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
+import org.apache.jmeter.samplers.SampleResult;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -70,6 +71,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         if (!isMock() && consumer != null) {
             consumer.subscribe(topics);
             int totalRecords = 0;
+            long totalSize = 0;
             long startTime = System.currentTimeMillis(), stopTime = startTime;
 
             StringBuilder sb = new StringBuilder();
@@ -85,6 +87,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                 int recCount = consumerRecords.count();
                 if (recCount > 0) {
                     for (ConsumerRecord<String, byte[]> record : consumerRecords) {
+                        totalSize += record.value().length;
                         processRecord(totalRecords, record.key(), record.value(), kafkaxRun, record.offset());
                     }
                     if ((totalRecords += recCount) >= limit) {
@@ -95,6 +98,9 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                 stopTime = System.currentTimeMillis();
                 timeIsOver = stopTime > startTime + totalPollTime;
             };
+
+            kafkaxRun.getPostconditions().setSampleCount(totalRecords);
+            kafkaxRun.getPostconditions().setSize(totalSize);
 
 //            sb.append('\n').append("stopTime:").append(stopTime)
 //                    .append('\n').append("recordCount:").append(totalRecords)
@@ -140,6 +146,16 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         }
         consumer = null;
         super.teardownTest(context);
+    }
+
+    @Override
+    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
+        // cut this
+        sampleResult.setRequestHeaders(run.getPreconditions().toString());
+        sampleResult.setResponseHeaders(run.getPostconditions().toString());
+        final String payload = run.getPayload().toString();
+        sampleResult.setResponseData(payload, ENCODING);
+        sampleResult.setSamplerData("No request data for Consumer");
     }
 
     private List<String> getTopics(String topic) {

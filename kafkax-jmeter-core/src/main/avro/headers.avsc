@@ -114,9 +114,16 @@
         "name": "KafkaxPostconditions",
         "fields": [
           {
-            "name": "TBD",
-            "doc": "TBD",
-            "type": "string"
+            "name": "sampleCount",
+            "doc": "Sample count",
+            "type": "int",
+            "default": 0
+          },
+          {
+            "name": "size",
+            "doc": "Total size in bytes",
+            "type": "long",
+            "default": 0
           }
         ]
       }

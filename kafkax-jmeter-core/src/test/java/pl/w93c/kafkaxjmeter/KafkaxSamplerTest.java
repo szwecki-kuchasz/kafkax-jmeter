@@ -1,6 +1,7 @@
 package pl.w93c.kafkaxjmeter;
 
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
+import org.apache.jmeter.samplers.SampleResult;
 import org.junit.Test;
 import pl.w93c.kafkaxjmeter.run.KafkaParameters;
 import pl.w93c.kafkaxjmeter.run.KafkaxPostconditions;
@@ -31,11 +32,15 @@ public class KafkaxSamplerTest {
                         .build()
                 )
                 .setPostconditions(KafkaxPostconditions.newBuilder()
-                        .setTBD("nothing")
                         .build()
                 )
                 .build();
         KafkaxSampler sampler = new KafkaxSampler() {
+            @Override
+            protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
+                // NOP
+            }
+
             @Override
             protected void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception {
                 // NOP

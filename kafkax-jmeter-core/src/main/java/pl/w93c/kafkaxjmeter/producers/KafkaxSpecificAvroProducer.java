@@ -9,6 +9,7 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.jmeter.samplers.SampleResult;
+import pl.w93c.kafkaxjmeter.run.KafkaxRun;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,8 +19,8 @@ public abstract class KafkaxSpecificAvroProducer<T extends SpecificRecord> exten
     private T specificRecord;
 
     @Override
-    protected void beforeRun(JavaSamplerContext context, SampleResult sampleResult) {
-        super.beforeRun(context, sampleResult);
+    protected void beforeRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
+        super.beforeRun(context, sampleResult, run);
         specificRecord = createSpecificRecord(context);
     }
 
