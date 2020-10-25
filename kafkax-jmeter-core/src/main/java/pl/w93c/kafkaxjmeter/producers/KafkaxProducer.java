@@ -17,10 +17,10 @@ package pl.w93c.kafkaxjmeter.producers;
 
 //import com.google.common.base.Strings;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
-import org.apache.jmeter.samplers.SampleResult;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import pl.w93c.kafkaxjmeter.KafkaxSampler;
+import pl.w93c.kafkaxjmeter.run.KafkaxRun;
 
 import java.util.Map;
 
@@ -74,17 +74,24 @@ public abstract class KafkaxProducer extends KafkaxSampler {
     }
 
     @Override
-    protected String getResultData(JavaSamplerContext context) {
-        return getMessage(context);
-    }
-
-    @Override
-    protected void runTestImpl(JavaSamplerContext context, SampleResult result) throws Exception {
+    protected void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception {
         final String topic = context.getParameter(PARAMETER_KAFKA_TOPIC);
         final String key = context.getParameter(PARAMETER_KAFKA_KEY);
         final String partitionString = context.getParameter(PARAMETER_KAFKA_PARTITION);
+
+        kafkaxRun.getKafkaParameters().setTopic(topic);
+// TODO save partition to kafkaxRun
+
         final ProducerRecord<String, byte[]> producerRecord;
-        byte[] bytes = getBytes(context);
+        final byte[] bytes = getBytes(context);
+        final String message = getMessage(context);
+
+        addKafkaxRunPayload(kafkaxRun
+                , 0 // do not change, value 0 is OK, there is only one record
+                , key, message, bytes
+                , Long.valueOf(0) // maybe we should know Producent offset
+        );
+
         if (!isMock() && producer != null) {
             if (isEmpty(partitionString)) {
                 producerRecord = new ProducerRecord<>(topic, key, bytes);

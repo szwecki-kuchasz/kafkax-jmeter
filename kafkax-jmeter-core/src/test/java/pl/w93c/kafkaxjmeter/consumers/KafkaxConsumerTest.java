@@ -1,8 +1,8 @@
 package pl.w93c.kafkaxjmeter.consumers;
 
 import org.apache.jmeter.config.Arguments;
-import org.apache.jmeter.samplers.SampleResult;
 import org.junit.Test;
+import pl.w93c.kafkaxjmeter.run.KafkaxRun;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ public class KafkaxConsumerTest {
     public void shouldGetDefaultParameters() {
         final KafkaxConsumer consumer = new KafkaxConsumer() {
             @Override
-            protected void processRecord(int recordNumber, String key, byte[] value, SampleResult sampleResult) throws Exception {
+            protected void processRecord(int recordNumber, String key, byte[] value, KafkaxRun kafkaxRun, Long offset) throws Exception {
                 // NOP
             }
         };

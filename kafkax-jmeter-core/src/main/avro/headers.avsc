@@ -1,0 +1,125 @@
+{
+  "namespace": "pl.w93c.kafkaxjmeter.run",
+  "type": "record",
+  "name": "KafkaxRun",
+  "doc": "Kafkax test",
+  "fields": [
+    {
+      "name": "kafkaParameters",
+      "doc": "Common parameters of all Kafkax samplers (Prod/Cons)",
+      "type": {
+        "type": "record",
+        "name": "KafkaParameters",
+        "fields": [
+          {
+            "name": "brokers",
+            "doc": "List of brokers",
+            "type": "string"
+          },
+          {
+            "name": "topic",
+            "doc": "Topic name",
+            "type": "string"
+          },
+          {
+            "name": "ssl",
+            "doc": "SSL use flag",
+            "type": "boolean"
+          },
+          {
+            "name": "mock",
+            "doc": "Mock flag",
+            "type": "boolean"
+          },
+          {
+            "name": "startTime",
+            "doc": "Start time - millis since Jan 1 1970",
+            "type": "long"
+          },
+          {
+            "name": "endTime",
+            "doc": "End time - millis since Jan 1 1970",
+            "type": ["null", "long"],
+            "default": "null"
+          }
+        ]
+      }
+    },
+    {
+      "name": "preconditions",
+      "doc": "Preconditions of test case",
+      "type": {
+        "type": "record",
+        "name": "KafkaxPreconditions",
+        "fields": [
+          {
+            "name": "TBD",
+            "doc": "TBD",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "payload",
+      "doc": "Payload of test case",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "KafkaxPayload",
+          "fields": [
+            {
+              "name": "counter",
+              "doc": "Counter",
+              "type": "int"
+            },
+            {
+              "name": "key",
+              "doc": "Key",
+              "type": "string"
+            },
+            {
+              "name": "value",
+              "doc": "Value",
+              "type": "string"
+            },
+            {
+              "name": "rawValue",
+              "doc": "Raw value",
+              "type": [
+                "null",
+                "bytes"
+              ],
+              "default": "null"
+            },
+            {
+              "name": "offset",
+              "doc": "Offset",
+              "type": [
+                "null",
+                "long"
+              ],
+              "default": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "postconditions",
+      "doc": "Postconditions of test case",
+      "type": {
+        "type": "record",
+        "name": "KafkaxPostconditions",
+        "fields": [
+          {
+            "name": "TBD",
+            "doc": "TBD",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}
