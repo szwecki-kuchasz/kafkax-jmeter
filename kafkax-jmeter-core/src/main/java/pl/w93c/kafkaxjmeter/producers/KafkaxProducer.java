@@ -20,10 +20,15 @@ import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import pl.w93c.kafkaxjmeter.KafkaxSampler;
 import pl.w93c.kafkaxjmeter.run.KafkaxRun;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.isEmpty;
 
@@ -42,17 +47,21 @@ import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.isEmpty;
  */
 public abstract class KafkaxProducer extends KafkaxSampler {
 
-    /**
-     * Parameter for setting the partition. It is optional.
+    /** Optional parameter for setting the partition
      */
     protected static final String PARAMETER_KAFKA_PARTITION = "kafka_partition";
+    /** Optional parameter for setting the Kafka record key
+     */
+    protected static final String PARAMETER_KAFKA_KEY = "kafka_key";
 
     private KafkaProducer<String, byte[]> producer;
+    private Exception setupTestException;
 
     @Override
     protected void populateParams(Map<String, String> map) {
         super.populateParams(map);
         map.put(PARAMETER_KAFKA_PARTITION, null);
+        map.put(PARAMETER_KAFKA_KEY, "${PARAMETER_KAFKA_KEY}");
     }
 
     @Override
@@ -61,7 +70,13 @@ public abstract class KafkaxProducer extends KafkaxSampler {
         if (isMock()) {
             producer = null;
         } else {
-            producer = new KafkaProducer<>(getProps());
+            try {
+                producer = new KafkaProducer<>(getProps());
+            }
+            catch (Exception e) {
+                // we can only save this exception to throw it in runTest, so JMeter can show it in GUI
+                setupTestException = e;
+            }
         }
     }
 
@@ -76,6 +91,11 @@ public abstract class KafkaxProducer extends KafkaxSampler {
 
     @Override
     protected void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception {
+
+        if (setupTestException != null) {
+            throw setupTestException;
+        }
+
         final String topic = context.getParameter(PARAMETER_KAFKA_TOPIC);
         final String key = context.getParameter(PARAMETER_KAFKA_KEY);
         final String partitionString = context.getParameter(PARAMETER_KAFKA_PARTITION);
@@ -86,12 +106,7 @@ public abstract class KafkaxProducer extends KafkaxSampler {
         final ProducerRecord<String, byte[]> producerRecord;
         final byte[] bytes = getBytes(context);
         final String message = getMessage(context);
-
-        addKafkaxRunPayload(kafkaxRun
-                , 0 // do not change, value 0 is OK, there is only one record
-                , key, message, bytes
-                , Long.valueOf(0) // maybe we should know Producent offset
-        );
+        Long offset = null;
 
         if (!isMock() && producer != null) {
             if (isEmpty(partitionString)) {
@@ -100,8 +115,22 @@ public abstract class KafkaxProducer extends KafkaxSampler {
                 final int partitionNumber = Integer.parseInt(partitionString);
                 producerRecord = new ProducerRecord<>(topic, partitionNumber, key, bytes);
             }
-            producer.send(producerRecord);
+            Future<RecordMetadata> result = producer.send(producerRecord);
+            RecordMetadata meta;
+            try {
+                meta = result.get(1000, TimeUnit.MILLISECONDS);
+                offset = meta.offset();
+            }
+            catch (InterruptedException | ExecutionException | TimeoutException e) {
+                offset = null;
+            }
         }
+
+        addKafkaxRunPayload(kafkaxRun
+                , 0 // do not change, value 0 is OK, there is only one record
+                , key, message, bytes
+                , offset
+        );
 
         kafkaxRun.getPostconditions().setSampleCount(1);
         kafkaxRun.getPostconditions().setSize((long)bytes.length);
@@ -109,9 +138,8 @@ public abstract class KafkaxProducer extends KafkaxSampler {
 
     @Override
     protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
-        // cut this
-        sampleResult.setRequestHeaders(run.getPreconditions().toString());
-        sampleResult.setResponseHeaders(run.getPostconditions().toString());
+        super.afterRun(context, sampleResult, run);
+
         final String payload = run.getPayload().toString();
         sampleResult.setSamplerData(payload);
         sampleResult.setResponseData("No response data for Producer", ENCODING);

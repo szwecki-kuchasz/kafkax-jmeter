@@ -5,6 +5,7 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificRecord;
+import pl.w93c.kafkaxjmeter.helpers.ExceptionHelper;
 import pl.w93c.kafkaxjmeter.run.KafkaxRun;
 
 public abstract class KafkaxSpecificAvroConsumer<T extends SpecificRecord> extends KafkaxConsumer {
@@ -14,15 +15,13 @@ public abstract class KafkaxSpecificAvroConsumer<T extends SpecificRecord> exten
     protected abstract Class<T> getParameterClass();
 
     @Override
-    protected void processRecord(int recordNumber, String key, byte[] value, KafkaxRun kafkaxRun, Long offset) throws Exception {
+    protected final void processRecord(int recordNumber, String key, byte[] value, KafkaxRun kafkaxRun, Long offset) throws Exception {
         try {
             T t = deserializeT(value);
             processRecord(t);
-            // kafkaxRun.setResponseData(t.toString());
             addKafkaxRunPayload(kafkaxRun, recordNumber, key, t.toString(), value, offset);
         } catch (Exception e) {
-            // kafkaxRun.setResponseCode(e.getMessage());
-            addKafkaxRunPayload(kafkaxRun, recordNumber, key, e.getClass().getName() + ":/n" + e.getMessage(), value, null);
+            addKafkaxRunPayload(kafkaxRun, recordNumber, key, ExceptionHelper.getStackTrace(e), value, offset);
             throw e;
         }
     }

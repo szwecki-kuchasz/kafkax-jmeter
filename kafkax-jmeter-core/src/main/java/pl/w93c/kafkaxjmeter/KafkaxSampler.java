@@ -6,10 +6,9 @@ import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import pl.w93c.kafkaxjmeter.helpers.ExceptionHelper;
 import pl.w93c.kafkaxjmeter.run.*;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,10 +32,6 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
      * Parameter for setting the Kafka topic name.
      */
     protected static final String PARAMETER_KAFKA_TOPIC = "kafka_topic";
-    /**
-     * Parameter for setting the Kafka key.
-     */
-    protected static final String PARAMETER_KAFKA_KEY = "kafka_key";
     /**
      * Parameter for setting Kafka's {@code serializer.class} property.
      */
@@ -79,6 +74,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
      */
     protected static final String ENCODING = "UTF-8";
     protected static final String NOT_SET_YET = "value not set yet";
+    private final ExceptionHelper exceptionHelper = new ExceptionHelper();
 
     private boolean mock;
     private String bootstrap;
@@ -104,7 +100,6 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         map.put(PARAMETER_KAFKA_MOCK, "false");
         map.put(PARAMETER_KAFKA_BROKERS, "${PARAMETER_KAFKA_BROKERS}");
         map.put(PARAMETER_KAFKA_TOPIC, "${PARAMETER_KAFKA_TOPIC}");
-        map.put(PARAMETER_KAFKA_KEY, "${PARAMETER_KAFKA_KEY}");
         map.put(PARAMETER_KAFKA_SSL_KEYSTORE, "${PARAMETER_KAFKA_SSL_KEYSTORE}");
         map.put(PARAMETER_KAFKA_SSL_KEYSTORE_PASSWORD, "${PARAMETER_KAFKA_SSL_KEYSTORE_PASSWORD}");
         map.put(PARAMETER_KAFKA_SSL_TRUSTSTORE, "${PARAMETER_KAFKA_SSL_TRUSTSTORE}");
@@ -180,7 +175,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
             afterSuccess(sampleResult);
 
         } catch (Exception e) {
-            afterFail(sampleResult, getStackTrace(e), e);
+            afterFail(sampleResult, exceptionHelper.getStackTrace(e), e);
         }
         afterRun(context, sampleResult, run);
 
@@ -229,7 +224,10 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         result.setDataType(SampleResult.TEXT);
     }
 
-    protected abstract void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run);
+    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
+        sampleResult.setRequestHeaders("See Response | Headers");
+        sampleResult.setResponseHeaders(run.toString());
+    }
 
     protected abstract void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception;
 
@@ -270,19 +268,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         result.setSuccessful(false);
         result.setResponseCode(reason);
         result.setResponseMessage("Exception: " + exception);
-        result.setResponseData(getStackTrace(exception), ENCODING);
+        result.setResponseData(ExceptionHelper.getStackTrace(exception), ENCODING);
     }
 
-    /**
-     * Return the stack trace as a string.
-     *
-     * @param exception the exception containing the stack trace
-     * @return the stack trace
-     */
-    protected String getStackTrace(Exception exception) {
-        // https://www.baeldung.com/java-stacktrace-to-string
-        StringWriter stringWriter = new StringWriter();
-        exception.printStackTrace(new PrintWriter(stringWriter));
-        return stringWriter.toString();
-    }
 }

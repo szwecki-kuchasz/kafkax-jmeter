@@ -16,10 +16,10 @@ public class KafkaxConsumerTest {
             "kafka_topic",
             "kafka_consumer_group",
             "kafka_compression_type",
-            "kafka_key",
             "kafka_mock",
             "kafka_use_ssl",
             "kafka_ssl_keystore", "kafka_ssl_keystore_password", "kafka_ssl_truststore", "kafka_ssl_truststore_password",
+            "kafka_consumer_continue_at_fail",
             "consumer_poll_records_limit",
             "consumer_poll_time_msec",
             "consumer_total_poll_time_msec"
@@ -39,6 +39,7 @@ public class KafkaxConsumerTest {
         assertThat(names)
                 .contains(EXPECTED_PARAMS)
                 .doesNotContain("kafka_partition")
+                .doesNotContain("kafka_key")
         ;
     }
 

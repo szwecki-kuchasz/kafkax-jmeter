@@ -1,3 +1,8 @@
 # Project exclude paths
 /kafkax-jmeter-core/target/
 /kafkax-jmeter-examples/target/
+/target/
+/.idea/
+/kafkax-jmeter-core/kafkax-jmeter-core.iml
+/kafkax-jmeter-examples/kafkax-jmeter-examples.iml
+/kafkax-jmeter.iml
