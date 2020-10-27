@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import pl.w93c.kafkaxjmeter.KafkaxSampler;
+import pl.w93c.kafkaxjmeter.run.KafkaxRun;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -20,15 +21,21 @@ import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.toLong;
 public abstract class KafkaxConsumer extends KafkaxSampler {
 
     /**
-     * Parameter for Kafka consumer group.
+     * Parameter for Kafka consumer group
      */
     protected static final String PARAMETER_KAFKA_CONSUMER_GROUP = "kafka_consumer_group";
+    /**
+     * Parameter for Kafka consumer group
+     */
+    protected static final String PARAMETER_KAFKA_CONSUMER_CONTINUE_AT_FAIL = "kafka_consumer_continue_at_fail";
 
     protected static final String LIMIT = "consumer_poll_records_limit";
     protected static final String POLL_TIME = "consumer_poll_time_msec";
     protected static final String TOTAL_POLL_TIME = "consumer_total_poll_time_msec";
 
     protected static final long DEFAULT_POLL_TIME = 5000L; // msec
+    private String consumerGroup;
+    private boolean continueAtFail;
 
     @Override
     protected void populateParams(Map<String, String> map) {
@@ -36,29 +43,41 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         map.put(PARAMETER_KAFKA_CONSUMER_GROUP, "${PARAMETER_KAFKA_CONSUMER_GROUP}");
         map.put(LIMIT, "${PARAMETER_KAFKA_CONSUMER_POLL_RECORDS_LIMIT}");
         map.put(POLL_TIME, "${PARAMETER_KAFKA_CONSUMER_POLL_TIME}");
-        map.put(TOTAL_POLL_TIME, "${PARAMETER_KAFKA_CONSUMER__TOTAL_POLL_TIME}");
-    }
-
-    @Override
-    protected String getResultData(JavaSamplerContext context) {
-        return "no data for this sampler";
+        map.put(TOTAL_POLL_TIME, "${PARAMETER_KAFKA_CONSUMER_TOTAL_POLL_TIME}");
+        map.put(PARAMETER_KAFKA_CONSUMER_CONTINUE_AT_FAIL, "true");
     }
 
     KafkaConsumer<String, byte[]> consumer;
 
+    private Exception setupTestException;
+
     @Override
     public void setupTest(JavaSamplerContext context) {
         super.setupTest(context);
-        getProps().put(ConsumerConfig.GROUP_ID_CONFIG, getParam(context, PARAMETER_KAFKA_CONSUMER_GROUP));
+        setupTestException = null;
+        consumerGroup = getParam(context, PARAMETER_KAFKA_CONSUMER_GROUP);
+        getProps().put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroup);
         if (isMock()) {
             consumer = null;
         } else {
-            consumer = new KafkaConsumer<>(getProps());
+            try {
+                consumer = new KafkaConsumer<>(getProps());
+            }
+            catch (Exception e) {
+                getNewLogger().warn("Create KafkaConsumer failed", e);
+                // we can only save this exception to throw it in runTest, so JMeter can show it in GUI
+                setupTestException = e;
+            }
         }
     }
 
     @Override
-    protected void runTestImpl(JavaSamplerContext context, SampleResult sampleResult) throws Exception {
+    protected void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception {
+
+        if (setupTestException != null) {
+            throw setupTestException;
+        }
+
         long pollTime = getPollTime(context);
         long totalPollTime = getTotalPollTime(context);
         int limit = getRecordLimit(context);
@@ -66,29 +85,43 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         String topic = getParam(context, PARAMETER_KAFKA_TOPIC);
         List<String> topics = getTopics(topic);
 
-        sampleResult.setRequestHeaders("topics:" + topic + "\nmax records:" + limit + "\n pollTime:" + pollTime + "\n totalPollTime:" + totalPollTime
-                + "\nmock:" + isMock());
+        continueAtFail = Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(PARAMETER_KAFKA_CONSUMER_CONTINUE_AT_FAIL));
+        
+//        sampleResult.setRequestHeaders("topics:" + topic + "\nmax records:" + limit + "\n pollTime:" + pollTime + "\n totalPollTime:" + totalPollTime
+//                + "\nmock:" + isMock());
+        kafkaxRun.getKafkaParameters().setTopic(topic);
 
         if (!isMock() && consumer != null) {
-            System.out.println("TOPICS: " + topics);
             consumer.subscribe(topics);
             int totalRecords = 0;
+            int errorCount = 0;
+            long totalSize = 0;
             long startTime = System.currentTimeMillis(), stopTime = startTime;
+            Exception savedException = null;
 
             StringBuilder sb = new StringBuilder();
             sb.append("start:").append(startTime);
 
             boolean enough = false, timeIsOver = false;
 
-            while (!timeIsOver
+            WHOLE_LOOP: while (!timeIsOver
                     && !enough
-                    && true // TODO: look at whole scenario conditions
             ) {
                 ConsumerRecords<String, byte[]> consumerRecords = consumer.poll(Duration.ofMillis(pollTime));
                 int recCount = consumerRecords.count();
                 if (recCount > 0) {
                     for (ConsumerRecord<String, byte[]> record : consumerRecords) {
-                        processRecord(totalRecords, record.key(), record.value(), sampleResult);
+                        totalSize += record.value().length;
+                        try {
+                            processRecord(totalRecords, record.key(), record.value(), kafkaxRun, record.offset());
+                        }
+                        catch (Exception e) {
+                            savedException = e;
+                            errorCount++;
+                            if (!continueAtFail) {
+                                break WHOLE_LOOP;
+                            }
+                        }
                     }
                     if ((totalRecords += recCount) >= limit) {
                         enough = true;
@@ -99,13 +132,25 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                 timeIsOver = stopTime > startTime + totalPollTime;
             };
 
-            sb.append('\n').append("stopTime:").append(stopTime)
-                    .append('\n').append("recordCount:").append(totalRecords)
-                    .append('\n').append("duration:").append(stopTime - startTime)
-                    .append('\n').append("enough:").append(enough)
-                    .append('\n').append("timeIsOver").append(timeIsOver)
-            ;
-            sampleResult.setResponseHeaders(sb.toString());
+            kafkaxRun.getPostconditions().setSampleCount(totalRecords);
+            kafkaxRun.getPostconditions().setSize(totalSize);
+
+            if (errorCount > 1) {
+                // tell JMeter about >=1 error during consuming
+                throw new KafkaxConsumeException("Errors occurred while reading (" + errorCount + "). See details in Response Headers.");
+            } else if (errorCount > 0) {
+                // show original single exception as cause of test fail
+                throw new KafkaxConsumeException(savedException);
+            }
+
+
+//            sb.append('\n').append("stopTime:").append(stopTime)
+//                    .append('\n').append("recordCount:").append(totalRecords)
+//                    .append('\n').append("duration:").append(stopTime - startTime)
+//                    .append('\n').append("enough:").append(enough)
+//                    .append('\n').append("timeIsOver").append(timeIsOver)
+//            ;
+//            sampleResult.setResponseHeaders(sb.toString());
 
         }
     }
@@ -134,7 +179,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         return pollTime;
     }
 
-    protected abstract void processRecord(int recordNumber, String key, byte[] value, SampleResult sampleResult) throws Exception;
+    protected abstract void processRecord(int recordNumber, String key, byte[] value, KafkaxRun kafkaxRun, Long offset) throws Exception;
 
     @Override
     public void teardownTest(JavaSamplerContext context) {
@@ -143,6 +188,15 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         }
         consumer = null;
         super.teardownTest(context);
+    }
+
+    @Override
+    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
+        super.afterRun(context, sampleResult, run);
+
+        final String payload = run.getPayload().toString();
+        sampleResult.setResponseData(payload, ENCODING);
+        sampleResult.setSamplerData("No request data for Consumer");
     }
 
     private List<String> getTopics(String topic) {
