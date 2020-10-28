@@ -1,5 +1,5 @@
 # kafkax-jmeter
-Simple and extendable JMeter samplers for Kafka produce and consume\
+Simple and extendable JMeter samplers for produce to / read from Apache Kafka topic\
 Inspiration and fragments of base class from repo:\
 https://github.com/BrightTag/kafkameter
 
@@ -13,10 +13,10 @@ Abstract implementation of AbstractJavaSamplerClient from JMeter library.
 
 ### KafkaxProducer
 Still abstract specialization of KafkaxSampler.
-* Knows: that his job is to produce to topik; that byte array serialization is used
+* Knows: that his job is to produce to topic; that byte array serialization is used
 * Introduces template implementation of runTest method
 * Delegates runTestImpl to specializations
-* Doesn't know: what to serialize
+* Doesn't know: what to serialize?
 
 ### KafkaxStringProducer
 Still abstract specialization of KafkaxProducer.
@@ -26,7 +26,7 @@ Still abstract specialization of KafkaxProducer.
 ### KafkaxSimpleStringProducer
 Specialization of KafkaxStringSampler.
 * Knows: it should serialize String provided in parameter named kafka.message
-* Adds this parameter in overrided populateParams method
+* Adds this parameter in overridden populateParams method
 
 ### KafkaxSpecificAvroProducer
 Abstract specialization of KafkaxProducer.
@@ -53,11 +53,11 @@ Abstract specialization of KafkaxConsumer.
 
 ## NotSoSimpleStringProducer
 Example specialization of KafkaxStringSampler.
-* Knows: it should serialize String combined from hardcoded template and additionally parameters, added in overriden populateParams method
+* Knows: it should serialize String combined from hardcoded template and additionally parameters, added in overridden populateParams method
 
 ## WeatherKafkaxProducer
 Example specialization of KafkaxSpecificAvroProducer
-Knows: serializes objects of class Weather, generated from schema weather.avsc. Attributes of this objects are added to overriden populateParams method and provided in JMeter GUI
+Knows: serializes objects of class Weather, generated from schema weather.avsc. Attributes of this objects are added to overridden populateParams method and provided in JMeter GUI
 
 ## WeatherKafkaxConsumer
 Example specialization of KafkaxSpecificAvroConsumer
