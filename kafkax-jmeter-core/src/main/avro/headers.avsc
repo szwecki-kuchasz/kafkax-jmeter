@@ -53,9 +53,28 @@
         "name": "KafkaxPreconditions",
         "fields": [
           {
-            "name": "TBD",
-            "doc": "TBD",
-            "type": "string"
+            "name": "consumerPollTime",
+            "doc": "Time for polling from topic",
+            "type": ["null", "long"],
+            "default": "null"
+          },
+          {
+            "name": "consumerTotalPollTime",
+            "doc": "Total time for consuming from topic",
+            "type": ["null", "long"],
+            "default": "null"
+          },
+          {
+            "name": "consumerRecordLimit",
+            "doc": "Limit of processed record",
+            "type": ["null", "int"],
+            "default": "null"
+          },
+          {
+            "name": "consumerContinueAtFail",
+            "doc": "Continue after exception at processing record",
+            "type": ["null", "boolean"],
+            "default": "null"
           }
         ]
       }
@@ -114,8 +133,8 @@
         "name": "KafkaxPostconditions",
         "fields": [
           {
-            "name": "sampleCount",
-            "doc": "Sample count",
+            "name": "recordCount",
+            "doc": "Record count",
             "type": "int",
             "default": 0
           },
@@ -124,6 +143,30 @@
             "doc": "Total size in bytes",
             "type": "long",
             "default": 0
+          },
+          {
+            "name": "errorCount",
+            "doc": "Count of errors",
+            "type": ["null", "int"],
+            "default": "null"
+          },
+          {
+            "name": "endConditionCount",
+            "doc": "End of consuming because record count limit reached",
+            "type": ["null", "boolean"],
+            "default": "null"
+          },
+          {
+            "name": "endConditionTime",
+            "doc": "End of consuming because time limit reached",
+            "type": ["null", "boolean"],
+            "default": "null"
+          },
+          {
+            "name": "endConditionException",
+            "doc": "End of consuming because exception at process record",
+            "type": ["null", "boolean"],
+            "default": "null"
           }
         ]
       }

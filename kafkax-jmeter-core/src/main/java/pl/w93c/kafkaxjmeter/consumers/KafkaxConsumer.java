@@ -20,18 +20,11 @@ import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.toLong;
 
 public abstract class KafkaxConsumer extends KafkaxSampler {
 
-    /**
-     * Parameter for Kafka consumer group
-     */
-    protected static final String PARAMETER_KAFKA_CONSUMER_GROUP = "kafka_consumer_group";
-    /**
-     * Parameter for Kafka consumer group
-     */
-    protected static final String PARAMETER_KAFKA_CONSUMER_CONTINUE_AT_FAIL = "kafka_consumer_continue_at_fail";
-
+    protected static final String PARAMETER_KAFKA_CONSUMER_GROUP = "consumer_group";
     protected static final String LIMIT = "consumer_poll_records_limit";
     protected static final String POLL_TIME = "consumer_poll_time_msec";
     protected static final String TOTAL_POLL_TIME = "consumer_total_poll_time_msec";
+    protected static final String PARAMETER_KAFKA_CONSUMER_CONTINUE_AT_FAIL = "consumer_continue_at_fail";
 
     protected static final long DEFAULT_POLL_TIME = 5000L; // msec
     private String consumerGroup;
@@ -87,9 +80,11 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
 
         continueAtFail = Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(PARAMETER_KAFKA_CONSUMER_CONTINUE_AT_FAIL));
         
-//        sampleResult.setRequestHeaders("topics:" + topic + "\nmax records:" + limit + "\n pollTime:" + pollTime + "\n totalPollTime:" + totalPollTime
-//                + "\nmock:" + isMock());
         kafkaxRun.getKafkaParameters().setTopic(topic);
+        kafkaxRun.getPreconditions().setConsumerContinueAtFail(continueAtFail);
+        kafkaxRun.getPreconditions().setConsumerPollTime(pollTime);
+        kafkaxRun.getPreconditions().setConsumerTotalPollTime(totalPollTime);
+        kafkaxRun.getPreconditions().setConsumerRecordLimit(limit);
 
         if (!isMock() && consumer != null) {
             consumer.subscribe(topics);
@@ -99,10 +94,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
             long startTime = System.currentTimeMillis(), stopTime = startTime;
             Exception savedException = null;
 
-            StringBuilder sb = new StringBuilder();
-            sb.append("start:").append(startTime);
-
-            boolean enough = false, timeIsOver = false;
+            boolean enough = false, timeIsOver = false, broken = false;
 
             WHOLE_LOOP: while (!timeIsOver
                     && !enough
@@ -119,6 +111,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                             savedException = e;
                             errorCount++;
                             if (!continueAtFail) {
+                                broken = true;
                                 break WHOLE_LOOP;
                             }
                         }
@@ -132,8 +125,12 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                 timeIsOver = stopTime > startTime + totalPollTime;
             };
 
-            kafkaxRun.getPostconditions().setSampleCount(totalRecords);
+            kafkaxRun.getPostconditions().setRecordCount(totalRecords);
             kafkaxRun.getPostconditions().setSize(totalSize);
+            kafkaxRun.getPostconditions().setErrorCount(errorCount);
+            kafkaxRun.getPostconditions().setEndConditionCount(enough);
+            kafkaxRun.getPostconditions().setEndConditionTime(timeIsOver);
+            kafkaxRun.getPostconditions().setEndConditionException(broken);
 
             if (errorCount > 1) {
                 // tell JMeter about >=1 error during consuming
@@ -142,15 +139,6 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                 // show original single exception as cause of test fail
                 throw new KafkaxConsumeException(savedException);
             }
-
-
-//            sb.append('\n').append("stopTime:").append(stopTime)
-//                    .append('\n').append("recordCount:").append(totalRecords)
-//                    .append('\n').append("duration:").append(stopTime - startTime)
-//                    .append('\n').append("enough:").append(enough)
-//                    .append('\n').append("timeIsOver").append(timeIsOver)
-//            ;
-//            sampleResult.setResponseHeaders(sb.toString());
 
         }
     }
@@ -188,15 +176,6 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         }
         consumer = null;
         super.teardownTest(context);
-    }
-
-    @Override
-    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
-        super.afterRun(context, sampleResult, run);
-
-        final String payload = run.getPayload().toString();
-        sampleResult.setResponseData(payload, ENCODING);
-        sampleResult.setSamplerData("No request data for Consumer");
     }
 
     private List<String> getTopics(String topic) {

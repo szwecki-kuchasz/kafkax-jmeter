@@ -24,57 +24,21 @@ import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.isEmpty;
  * https://github.com/BrightTag/kafkameter
  */
 public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
-    /**
-     * Parameter for setting the Kafka brokers; for example, "kafka01:9092,kafka02:9092".
-     */
+
     protected static final String PARAMETER_KAFKA_BROKERS = "kafka_brokers";
-    /**
-     * Parameter for setting the Kafka topic name.
-     */
     protected static final String PARAMETER_KAFKA_TOPIC = "kafka_topic";
-    /**
-     * Parameter for setting Kafka's {@code serializer.class} property.
-     */
 //    protected static final String PARAMETER_KAFKA_MESSAGE_SERIALIZER = "kafka_message_serializer";
-    /**
-     * Parameter for setting Kafka's {@code key.serializer.class} property.
-     */
 //    protected static final String PARAMETER_KAFKA_KEY_SERIALIZER = "kafka_key_serializer";
-    /**
-     * Parameter for setting the Kafka ssl keystore (include path information); for example, "server.keystore.jks".
-     */
     protected static final String PARAMETER_KAFKA_SSL_KEYSTORE = "kafka_ssl_keystore";
-    /**
-     * Parameter for setting the Kafka ssl keystore password.
-     */
     protected static final String PARAMETER_KAFKA_SSL_KEYSTORE_PASSWORD = "kafka_ssl_keystore_password";
-    /**
-     * Parameter for setting the Kafka ssl truststore (include path information); for example, "client.truststore.jks".
-     */
     protected static final String PARAMETER_KAFKA_SSL_TRUSTSTORE = "kafka_ssl_truststore";
-    /**
-     * Parameter for setting the Kafka ssl truststore password.
-     */
     protected static final String PARAMETER_KAFKA_SSL_TRUSTSTORE_PASSWORD = "kafka_ssl_truststore_password";
-    /**
-     * Parameter for setting the Kafka security protocol; "true" or "false".
-     */
     protected static final String PARAMETER_KAFKA_USE_SSL = "kafka_use_ssl";
-    /**
-     * Parameter for setting encryption. It is optional.
-     */
     protected static final String PARAMETER_KAFKA_COMPRESSION_TYPE = "kafka_compression_type";
-    /**
-     * Parameter for mocking write
-     */
     protected static final String PARAMETER_KAFKA_MOCK = "kafka_mock";
     protected static final String EMPTY_VALUE = "";
-    /**
-     * Use UTF-8 for encoding of strings
-     */
     protected static final String ENCODING = "UTF-8";
     protected static final String NOT_SET_YET = "value not set yet";
-    private final ExceptionHelper exceptionHelper = new ExceptionHelper();
 
     private boolean mock;
     private String bootstrap;
@@ -160,29 +124,51 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
     @Override
     public final SampleResult runTest(JavaSamplerContext context) {
-
         KafkaxRun run = createRun();
-        SampleResult sampleResult = newSampleResult();
-
+        SampleResult sampleResult = new SampleResult();
         beforeRun(context, sampleResult, run);
-
         sampleResult.sampleStart();
-
         try {
             runTestImpl(context, run);
-
             run.getKafkaParameters().setEndTime(System.currentTimeMillis());
             afterSuccess(sampleResult);
-
         } catch (Exception e) {
-            afterFail(sampleResult, exceptionHelper.getStackTrace(e), e);
+            afterFail(sampleResult, ExceptionHelper.getStackTrace(e), e);
         }
         afterRun(context, sampleResult, run);
-
         return sampleResult;
     }
 
-    KafkaxRun createRun() {
+    protected void beforeRun(JavaSamplerContext context, SampleResult result, KafkaxRun run) {
+        result.setDataEncoding(ENCODING);
+        result.setDataType(SampleResult.TEXT);
+    }
+
+    protected abstract void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception;
+
+    private void afterSuccess(SampleResult result) {
+        result.sampleEnd();
+        result.setSuccessful(true);
+        result.setResponseCodeOK();
+    }
+
+    private void afterFail(SampleResult result, String reason, Exception exception) {
+        result.sampleEnd();
+        result.setSuccessful(false);
+        result.setResponseCode(reason);
+        result.setResponseMessage("Exception: " + exception);
+        result.setResponseData(ExceptionHelper.getStackTrace(exception), ENCODING);
+    }
+
+    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
+        sampleResult.setRequestHeaders("See: Response headers");
+        sampleResult.setResponseHeaders(run.toString());
+        sampleResult.setSentBytes(run.getPostconditions().getSize());
+        sampleResult.setResponseData(run.getPayload().toString(), ENCODING);
+        sampleResult.setSamplerData("See: Response body");
+    }
+
+    private KafkaxRun createRun() {
         KafkaxRun run = KafkaxRun.newBuilder()
                 .setKafkaParameters(KafkaParameters.newBuilder()
                         .setBrokers(bootstrap)
@@ -195,10 +181,19 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                 )
                 .setPayload(new ArrayList<>())
                 .setPreconditions(KafkaxPreconditions.newBuilder()
-                        .setTBD(NOT_SET_YET)
+                        .setConsumerContinueAtFail(null)
+                        .setConsumerPollTime(null)
+                        .setConsumerRecordLimit(null)
+                        .setConsumerTotalPollTime(null)
                         .build()
                 )
                 .setPostconditions(KafkaxPostconditions.newBuilder()
+                        .setSize(0)
+                        .setRecordCount(0)
+                        .setErrorCount(null)
+                        .setEndConditionCount(null)
+                        .setEndConditionTime(null)
+                        .setEndConditionException(null)
                         .build()
                 )
                 .build();
@@ -217,58 +212,6 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                         .setOffset(offset)
                         .build()
         );
-    }
-
-    protected void beforeRun(JavaSamplerContext context, SampleResult result, KafkaxRun run) {
-        result.setDataEncoding(ENCODING);
-        result.setDataType(SampleResult.TEXT);
-    }
-
-    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
-        sampleResult.setRequestHeaders("See Response | Headers");
-        sampleResult.setResponseHeaders(run.toString());
-    }
-
-    protected abstract void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception;
-
-    /**
-     * Factory for creating new {@link SampleResult}s.
-     *
-     * @return
-     */
-    private SampleResult newSampleResult() {
-        SampleResult result = new SampleResult();
-        return result;
-    }
-
-    /**
-     * Mark the sample result as {@code end}ed and {@code successful} with an "OK" {@code responseCode},
-     * and if the response is not {@code null} then set the {@code responseData} to {@code response},
-     * otherwise it is marked as not requiring a response.
-     *
-     * @param result sample result to change
-     *               //     * @param response the successful result message, may be null.
-     */
-    private void afterSuccess(SampleResult result) {
-        result.sampleEnd();
-        result.setSuccessful(true);
-        result.setResponseCodeOK();
-    }
-
-    /**
-     * Mark the sample result as @{code end}ed and not {@code successful}, set the
-     * {@code responseCode} to {@code reason}, and set {@code responseData} to the stack trace.
-     *
-     * @param result    the sample result to change
-     * @param reason    the failure reason
-     * @param exception the failure exception
-     */
-    private void afterFail(SampleResult result, String reason, Exception exception) {
-        result.sampleEnd();
-        result.setSuccessful(false);
-        result.setResponseCode(reason);
-        result.setResponseMessage("Exception: " + exception);
-        result.setResponseData(ExceptionHelper.getStackTrace(exception), ENCODING);
     }
 
 }

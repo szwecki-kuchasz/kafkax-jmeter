@@ -14,12 +14,12 @@ public class KafkaxConsumerTest {
     private static final String[] EXPECTED_PARAMS = {
             "kafka_brokers",
             "kafka_topic",
-            "kafka_consumer_group",
+            "consumer_group",
             "kafka_compression_type",
             "kafka_mock",
             "kafka_use_ssl",
             "kafka_ssl_keystore", "kafka_ssl_keystore_password", "kafka_ssl_truststore", "kafka_ssl_truststore_password",
-            "kafka_consumer_continue_at_fail",
+            "consumer_continue_at_fail",
             "consumer_poll_records_limit",
             "consumer_poll_time_msec",
             "consumer_total_poll_time_msec"

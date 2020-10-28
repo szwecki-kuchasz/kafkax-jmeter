@@ -28,19 +28,23 @@ public class KafkaxSamplerTest {
                 )
                 .setPayload(new ArrayList<>())
                 .setPreconditions(KafkaxPreconditions.newBuilder()
-                        .setTBD("nothing")
+                        .setConsumerContinueAtFail(null)
+                        .setConsumerPollTime(null)
+                        .setConsumerRecordLimit(null)
+                        .setConsumerTotalPollTime(null)
                         .build()
                 )
                 .setPostconditions(KafkaxPostconditions.newBuilder()
+                        .setSize(0)
+                        .setRecordCount(0)
+                        .setErrorCount(null)
+                        .setEndConditionCount(null)
+                        .setEndConditionTime(null)
+                        .setEndConditionException(null)
                         .build()
                 )
                 .build();
         KafkaxSampler sampler = new KafkaxSampler() {
-            @Override
-            protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
-                // NOP
-            }
-
             @Override
             protected void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception {
                 // NOP

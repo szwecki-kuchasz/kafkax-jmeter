@@ -132,18 +132,8 @@ public abstract class KafkaxProducer extends KafkaxSampler {
                 , offset
         );
 
-        kafkaxRun.getPostconditions().setSampleCount(1);
+        kafkaxRun.getPostconditions().setRecordCount(1);
         kafkaxRun.getPostconditions().setSize((long)bytes.length);
-    }
-
-    @Override
-    protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
-        super.afterRun(context, sampleResult, run);
-
-        final String payload = run.getPayload().toString();
-        sampleResult.setSamplerData(payload);
-        sampleResult.setResponseData("No response data for Producer", ENCODING);
-        sampleResult.setSentBytes(run.getPostconditions().getSize());
     }
 
     protected abstract byte[] getBytes(JavaSamplerContext context) throws Exception;
