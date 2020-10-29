@@ -1,7 +1,6 @@
 package pl.w93c.kafkaxjmeter.consumers;
 
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
-import org.apache.jmeter.samplers.SampleResult;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -105,7 +104,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                     for (ConsumerRecord<String, byte[]> record : consumerRecords) {
                         totalSize += record.value().length;
                         try {
-                            processRecord(totalRecords, record.key(), record.value(), kafkaxRun, record.offset());
+                            processRecord(totalRecords++, record.key(), record.value(), kafkaxRun, record.offset());
                         }
                         catch (Exception e) {
                             savedException = e;
@@ -116,9 +115,8 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                             }
                         }
                     }
-                    if ((totalRecords += recCount) >= limit) {
+                    if (totalRecords >= limit) {
                         enough = true;
-                        break;
                     };
                 }
                 stopTime = System.currentTimeMillis();

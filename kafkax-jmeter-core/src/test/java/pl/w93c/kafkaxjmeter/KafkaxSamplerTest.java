@@ -1,7 +1,6 @@
 package pl.w93c.kafkaxjmeter;
 
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
-import org.apache.jmeter.samplers.SampleResult;
 import org.junit.Test;
 import pl.w93c.kafkaxjmeter.run.KafkaParameters;
 import pl.w93c.kafkaxjmeter.run.KafkaxPostconditions;
@@ -9,8 +8,6 @@ import pl.w93c.kafkaxjmeter.run.KafkaxPreconditions;
 import pl.w93c.kafkaxjmeter.run.KafkaxRun;
 
 import java.util.ArrayList;
-
-import static org.junit.Assert.*;
 
 public class KafkaxSamplerTest {
 
