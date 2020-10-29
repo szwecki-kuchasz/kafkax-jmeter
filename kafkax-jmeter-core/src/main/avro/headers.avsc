@@ -75,6 +75,33 @@
             "doc": "Continue after exception at processing record",
             "type": ["null", "boolean"],
             "default": "null"
+          },
+          {
+            "name": "consumerGroup",
+            "doc": "Consumer group",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": "null"
+          },
+          {
+            "name": "clientId",
+            "doc": "Optional client id",
+            "type": [
+              "null",
+              "string"
+            ],
+            "default": "null"
+          },
+          {
+            "name": "consumerFromBeginning",
+            "doc": "Consumption from earliest",
+            "type": [
+              "null",
+              "boolean"
+            ],
+            "default": "null"
           }
         ]
       }

@@ -95,7 +95,7 @@ public abstract class KafkaxProducer extends KafkaxSampler {
             throw setupTestException;
         }
 
-        final String topic = context.getParameter(PARAMETER_KAFKA_TOPIC);
+        final String topic = context.getParameter(TOPIC);
         final String key = context.getParameter(PARAMETER_KAFKA_KEY);
         final String partitionString = context.getParameter(PARAMETER_KAFKA_PARTITION);
 

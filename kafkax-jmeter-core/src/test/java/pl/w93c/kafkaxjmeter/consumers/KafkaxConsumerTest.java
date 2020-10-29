@@ -22,7 +22,9 @@ public class KafkaxConsumerTest {
             "consumer_continue_at_fail",
             "consumer_poll_records_limit",
             "consumer_poll_time_msec",
-            "consumer_total_poll_time_msec"
+            "consumer_total_poll_time_msec",
+            "consumer_from_beginning",
+            "consumer_client_id"
     };
 
     @Test

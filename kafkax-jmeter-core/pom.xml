@@ -162,6 +162,7 @@
                 </configuration>
             </plugin>
             <plugin>
+                <!-- https://maven.apache.org/plugins/maven-dependency-plugin/copy-dependencies-mojo.html -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
@@ -177,6 +178,7 @@
                                 ${project.build.directory}/../../target/lib
                             </outputDirectory>
                             <includeScope>runtime</includeScope>
+                            <excludeArtifactIds>slf4j-api</excludeArtifactIds>
                         </configuration>
                     </execution>
                 </executions>

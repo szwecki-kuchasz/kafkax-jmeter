@@ -25,17 +25,17 @@ import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.isEmpty;
  */
 public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
-    protected static final String PARAMETER_KAFKA_BROKERS = "kafka_brokers";
-    protected static final String PARAMETER_KAFKA_TOPIC = "kafka_topic";
-//    protected static final String PARAMETER_KAFKA_MESSAGE_SERIALIZER = "kafka_message_serializer";
-//    protected static final String PARAMETER_KAFKA_KEY_SERIALIZER = "kafka_key_serializer";
-    protected static final String PARAMETER_KAFKA_SSL_KEYSTORE = "kafka_ssl_keystore";
-    protected static final String PARAMETER_KAFKA_SSL_KEYSTORE_PASSWORD = "kafka_ssl_keystore_password";
-    protected static final String PARAMETER_KAFKA_SSL_TRUSTSTORE = "kafka_ssl_truststore";
-    protected static final String PARAMETER_KAFKA_SSL_TRUSTSTORE_PASSWORD = "kafka_ssl_truststore_password";
-    protected static final String PARAMETER_KAFKA_USE_SSL = "kafka_use_ssl";
-    protected static final String PARAMETER_KAFKA_COMPRESSION_TYPE = "kafka_compression_type";
-    protected static final String PARAMETER_KAFKA_MOCK = "kafka_mock";
+    protected static final String BROKERS = "kafka_brokers";
+    protected static final String TOPIC = "kafka_topic";
+//    protected static final String VALUE_SERIALIZER = "kafka_value_serializer";
+//    protected static final String KEY_SERIALIZER = "kafka_key_serializer";
+    protected static final String SSL_KEYSTORE = "kafka_ssl_keystore";
+    protected static final String SSL_KEYSTORE_PASSWORD = "kafka_ssl_keystore_password";
+    protected static final String SSL_TRUSTSTORE = "kafka_ssl_truststore";
+    protected static final String SSL_TRUSTSTORE_PASSWORD = "kafka_ssl_truststore_password";
+    protected static final String USE_SSL = "kafka_use_ssl";
+    protected static final String COMPRESSION_TYPE = "kafka_compression_type";
+    protected static final String MOCK = "kafka_mock";
     protected static final String EMPTY_VALUE = "";
     protected static final String ENCODING = "UTF-8";
     protected static final String NOT_SET_YET = "value not set yet";
@@ -61,15 +61,15 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
     }
 
     protected void populateParams(final Map<String, String> map) {
-        map.put(PARAMETER_KAFKA_MOCK, "false");
-        map.put(PARAMETER_KAFKA_BROKERS, "${PARAMETER_KAFKA_BROKERS}");
-        map.put(PARAMETER_KAFKA_TOPIC, "${PARAMETER_KAFKA_TOPIC}");
-        map.put(PARAMETER_KAFKA_SSL_KEYSTORE, "${PARAMETER_KAFKA_SSL_KEYSTORE}");
-        map.put(PARAMETER_KAFKA_SSL_KEYSTORE_PASSWORD, "${PARAMETER_KAFKA_SSL_KEYSTORE_PASSWORD}");
-        map.put(PARAMETER_KAFKA_SSL_TRUSTSTORE, "${PARAMETER_KAFKA_SSL_TRUSTSTORE}");
-        map.put(PARAMETER_KAFKA_SSL_TRUSTSTORE_PASSWORD, "${PARAMETER_KAFKA_SSL_TRUSTSTORE_PASSWORD}");
-        map.put(PARAMETER_KAFKA_USE_SSL, "${PARAMETER_KAFKA_USE_SSL}");
-        map.put(PARAMETER_KAFKA_COMPRESSION_TYPE, null);
+        map.put(MOCK, "false");
+        map.put(BROKERS, "${PARAMETER_KAFKA_BROKERS}");
+        map.put(TOPIC, "${PARAMETER_KAFKA_TOPIC}");
+        map.put(SSL_KEYSTORE, "${PARAMETER_KAFKA_SSL_KEYSTORE}");
+        map.put(SSL_KEYSTORE_PASSWORD, "${PARAMETER_KAFKA_SSL_KEYSTORE_PASSWORD}");
+        map.put(SSL_TRUSTSTORE, "${PARAMETER_KAFKA_SSL_TRUSTSTORE}");
+        map.put(SSL_TRUSTSTORE_PASSWORD, "${PARAMETER_KAFKA_SSL_TRUSTSTORE_PASSWORD}");
+        map.put(USE_SSL, "${PARAMETER_KAFKA_USE_SSL}");
+        map.put(COMPRESSION_TYPE, null);
     }
 
     @Override
@@ -93,7 +93,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
     @Override
     public void setupTest(JavaSamplerContext context) {
-        bootstrap = context.getParameter(PARAMETER_KAFKA_BROKERS);
+        bootstrap = context.getParameter(BROKERS);
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrap);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
@@ -102,23 +102,23 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         props.put(ProducerConfig.ACKS_CONFIG, "1");
 
         // check if kafka security protocol is SSL or PLAINTEXT (default)
-        ssl = Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(PARAMETER_KAFKA_USE_SSL));
+        ssl = Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(USE_SSL));
         if (ssl) {
             props.put("security.protocol", "SSL");
-            props.put("ssl.keystore.location", context.getParameter(PARAMETER_KAFKA_SSL_KEYSTORE));
-            props.put("ssl.keystore.password", context.getParameter(PARAMETER_KAFKA_SSL_KEYSTORE_PASSWORD));
-            props.put("ssl.truststore.location", context.getParameter(PARAMETER_KAFKA_SSL_TRUSTSTORE));
-            props.put("ssl.truststore.password", context.getParameter(PARAMETER_KAFKA_SSL_TRUSTSTORE_PASSWORD));
+            props.put("ssl.keystore.location", context.getParameter(SSL_KEYSTORE));
+            props.put("ssl.keystore.password", context.getParameter(SSL_KEYSTORE_PASSWORD));
+            props.put("ssl.truststore.location", context.getParameter(SSL_TRUSTSTORE));
+            props.put("ssl.truststore.password", context.getParameter(SSL_TRUSTSTORE_PASSWORD));
         } else {
             props.put("security.protocol", "PLAINTEXT");
         }
 
-        String compressionType = context.getParameter(PARAMETER_KAFKA_COMPRESSION_TYPE);
+        String compressionType = context.getParameter(COMPRESSION_TYPE);
         if (!isEmpty(compressionType)) {
             props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, compressionType);
         }
 
-        mock = Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(PARAMETER_KAFKA_MOCK));
+        mock = Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(MOCK));
 
     }
 
@@ -161,11 +161,11 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
     }
 
     protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
-        sampleResult.setRequestHeaders("See: Response headers");
-        sampleResult.setResponseHeaders(run.toString());
+        sampleResult.setRequestHeaders(run.toString());
+        sampleResult.setResponseHeaders("See: Request headers");
         sampleResult.setSentBytes(run.getPostconditions().getSize());
-        sampleResult.setResponseData(run.getPayload().toString(), ENCODING);
-        sampleResult.setSamplerData("See: Response body");
+        sampleResult.setResponseData("See: Request body", ENCODING);
+        sampleResult.setSamplerData(run.getPayload().toString());
     }
 
     private KafkaxRun createRun() {
@@ -185,6 +185,9 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                         .setConsumerPollTime(null)
                         .setConsumerRecordLimit(null)
                         .setConsumerTotalPollTime(null)
+                        .setConsumerGroup(null)
+                        .setClientId(null)
+                        .setConsumerFromBeginning(null)
                         .build()
                 )
                 .setPostconditions(KafkaxPostconditions.newBuilder()
