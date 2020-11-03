@@ -47,13 +47,18 @@ public class KafkaxSamplerTest {
                 .build();
         KafkaxSampler sampler = new KafkaxSampler() {
             @Override
-            protected void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) throws Exception {
+            protected void runTestImpl(JavaSamplerContext context, KafkaxRun kafkaxRun) {
                 // NOP
             }
         };
         for (int i = 0 ; i < 4; i++) {
             String s = "value" + i;
             sampler.addResult(run, i, null, "key" + i, s, s.getBytes());
+        }
+        try {
+            throw new IllegalStateException("nevermind");
+        } catch (Exception expected) {
+            sampler.addError(run, 4, null, expected, "NeverMind".getBytes());
         }
         System.out.println(run);
     }

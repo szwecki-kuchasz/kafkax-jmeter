@@ -36,9 +36,11 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
     protected static final String USE_SSL = "kafka_use_ssl";
     protected static final String COMPRESSION_TYPE = "kafka_compression_type";
     protected static final String MOCK = "kafka_mock";
+    protected static final String REPORT_STACKTRACE = "kafka_report_stacktrace";
     protected static final String EMPTY_VALUE = "";
     protected static final String ENCODING = "UTF-8";
     protected static final String NOT_SET_YET = "value not set yet";
+    protected boolean reportStacktrace;
 
     private boolean mock;
     private String bootstrap;
@@ -70,6 +72,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         map.put(SSL_TRUSTSTORE_PASSWORD, "${PARAMETER_KAFKA_SSL_TRUSTSTORE_PASSWORD}");
         map.put(USE_SSL, "${PARAMETER_KAFKA_USE_SSL}");
         map.put(COMPRESSION_TYPE, null);
+        map.put(REPORT_STACKTRACE, "false");
     }
 
     @Override
@@ -120,6 +123,9 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
         mock = Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(MOCK));
 
+        reportStacktrace =
+                Boolean.TRUE.toString().equalsIgnoreCase(context.getParameter(REPORT_STACKTRACE));
+
     }
 
     @Override
@@ -130,7 +136,6 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         sampleResult.sampleStart();
         try {
             runTestImpl(context, run);
-            run.getKafkaParameters().setEndTime(System.currentTimeMillis());
             afterSuccess(sampleResult);
         } catch (Exception e) {
             afterFail(sampleResult, ExceptionHelper.getStackTrace(e), e);
@@ -160,7 +165,9 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         result.setResponseData(ExceptionHelper.getStackTrace(exception), ENCODING);
     }
 
+    @SuppressWarnings("unused")
     protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
+        run.getKafkaParameters().setEndTime(System.currentTimeMillis());
         sampleResult.setRequestHeaders(run.toString());
         sampleResult.setResponseHeaders("See: Request headers");
         sampleResult.setSentBytes(run.getPostconditions().getSize());
@@ -169,7 +176,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
     }
 
     private KafkaxRun createRun() {
-        KafkaxRun run = KafkaxRun.newBuilder()
+        return KafkaxRun.newBuilder()
                 .setKafkaParameters(KafkaParameters.newBuilder()
                         .setBrokers(bootstrap)
                         .setTopic(NOT_SET_YET)
@@ -201,37 +208,47 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                         .build()
                 )
                 .build();
-        return run;
     }
 
     protected void addResult(KafkaxRun run, int counter, Long offset, CharSequence key, CharSequence value, byte[] rawValue) {
-        run.getPayload().add(
-                KafkaxPayload.newBuilder()
-                        .setCounter(counter)
-                        .setKey(key)
-                        .setValue(value)
-                        .setRawValue(rawValue != null
-                                ? ByteBuffer.wrap(rawValue)
-                                : null)
-                        .setOffset(offset)
-                        .build()
-        );
+        try {
+            run.getPayload().add(
+                    KafkaxPayload.newBuilder()
+                            .setCounter(counter)
+                            .setKey(key)
+                            .setValue(value)
+                            .setRawValue(rawValue != null
+                                    ? ByteBuffer.wrap(rawValue)
+                                    : null)
+                            .setOffset(offset)
+                            .build()
+            );
+        } catch (Exception surprise) {
+            getNewLogger().warn("Unexpected exception:", surprise);
+        }
     }
 
     protected void addError(KafkaxRun run, int counter, Long offset, Exception e, byte[] rawValue) {
-        run.getErrors()
-                .add(
-                        KafkaxFail.newBuilder()
-                                .setCounter(counter)
-                                .setRawValue(rawValue != null
-                                        ? ByteBuffer.wrap(rawValue)
-                                        : null)
-                                .setOffset(offset)
-                                .setException(e.getClass().getCanonicalName())
-                                .setExceptionMessage(e.getMessage())
-                                .setExceptionStackTrace(ExceptionHelper.getStackTrace(e))
-                                .build()
-                );
+        try {
+            final String stack =
+                    reportStacktrace ? ExceptionHelper.getStackTrace(e)
+                            : "no details due to " + REPORT_STACKTRACE + " = false";
+            run.getErrors()
+                    .add(
+                            KafkaxFail.newBuilder()
+                                    .setCounter(counter)
+                                    .setRawValue(rawValue != null
+                                            ? ByteBuffer.wrap(rawValue)
+                                            : null)
+                                    .setOffset(offset)
+                                    .setException(e.getClass().getCanonicalName())
+                                    .setExceptionMessage(e.getMessage())
+                                    .setExceptionStackTrace(stack)
+                                    .build()
+                    );
+        } catch (Exception surprise) {
+            getNewLogger().warn("Unexpected exception:", surprise);
+        }
     }
 
 }

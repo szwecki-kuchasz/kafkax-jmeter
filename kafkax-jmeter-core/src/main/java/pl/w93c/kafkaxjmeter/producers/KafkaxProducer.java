@@ -31,27 +31,14 @@ import java.util.concurrent.TimeoutException;
 
 import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.isEmpty;
 
-/**
- * A {@link org.apache.jmeter.samplers.Sampler Sampler} which produces Kafka messages.
- *
- * @author codyaray
- * @see "http://ilkinbalkanay.blogspot.com/2010/03/load-test-whatever-you-want-with-apache.html"
- * @see "http://newspaint.wordpress.com/2012/11/28/creating-a-java-sampler-for-jmeter/"
- * @see "http://jmeter.512774.n5.nabble.com/Custom-Sampler-Tutorial-td4490189.html"
- * <p>
- * Modifications by Andrzej Ligudziński aligudzinski@gmail.com
- * class and some methods made abstract for more elastic class hierarchy
- * package name changed, was: co.signal.pl.w93c.kafkameter
- * @since 6/27/14
- */
 public abstract class KafkaxProducer extends KafkaxSampler {
 
     /** Optional parameter for setting the partition
      */
-    protected static final String PARAMETER_KAFKA_PARTITION = "kafka_partition";
+    protected static final String KAFKA_PARTITION = "kafka_partition";
     /** Optional parameter for setting the Kafka record key
      */
-    protected static final String PARAMETER_KAFKA_KEY = "kafka_key";
+    protected static final String KAFKA_KEY = "kafka_key";
 
     private KafkaProducer<String, byte[]> producer;
     private Exception setupTestException;
@@ -59,8 +46,8 @@ public abstract class KafkaxProducer extends KafkaxSampler {
     @Override
     protected void populateParams(Map<String, String> map) {
         super.populateParams(map);
-        map.put(PARAMETER_KAFKA_PARTITION, null);
-        map.put(PARAMETER_KAFKA_KEY, "${PARAMETER_KAFKA_KEY}");
+        map.put(KAFKA_PARTITION, EMPTY_VALUE);
+        map.put(KAFKA_KEY, EMPTY_VALUE);
     }
 
     @Override
@@ -96,11 +83,10 @@ public abstract class KafkaxProducer extends KafkaxSampler {
         }
 
         final String topic = context.getParameter(TOPIC);
-        final String key = context.getParameter(PARAMETER_KAFKA_KEY);
-        final String partitionString = context.getParameter(PARAMETER_KAFKA_PARTITION);
+        final String key = context.getParameter(KAFKA_KEY);
+        final String partitionString = context.getParameter(KAFKA_PARTITION);
 
         kafkaxRun.getKafkaParameters().setTopic(topic);
-// TODO save partition to kafkaxRun
 
         final ProducerRecord<String, byte[]> producerRecord;
         final byte[] bytes = getBytes(context);

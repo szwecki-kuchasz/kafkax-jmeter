@@ -130,7 +130,9 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                         addResult(kafkaxRun, totalRecords, offset, key, processed, value);
                         totalRecords++;
                     } catch (Exception e) {
+                        getNewLogger().error("tu sie wywalilo ");
                         addError(kafkaxRun, totalRecords, offset, e, value);
+                        getNewLogger().error("doszlo");
                         totalRecords++;
                         savedException = e;
                         errorCount++;
@@ -147,7 +149,6 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                 stopTime = System.currentTimeMillis();
                 timeIsOver = stopTime > startTime + totalPollTime;
             }
-            ;
 
             kafkaxRun.getPostconditions().setRecordCount(totalRecords);
             kafkaxRun.getPostconditions().setSize(totalSize);
