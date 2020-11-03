@@ -125,10 +125,9 @@ public abstract class KafkaxProducer extends KafkaxSampler {
             }
         }
 
-        addKafkaxRunPayload(kafkaxRun
+        addResult(kafkaxRun
                 , 0 // do not change, value 0 is OK, there is only one record
-                , key, message, bytes
-                , offset
+                , offset, key, message, bytes
         );
 
         kafkaxRun.getPostconditions().setRecordCount(1);

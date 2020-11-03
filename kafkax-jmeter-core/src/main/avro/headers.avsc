@@ -153,6 +153,58 @@
       }
     },
     {
+      "name": "errors",
+      "doc": "Errors of test case",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "KafkaxFail",
+          "fields": [
+            {
+              "name": "counter",
+              "doc": "Counter",
+              "type": "int"
+            },
+            {
+              "name": "exception",
+              "doc": "Exception",
+              "type": "string"
+            },
+            {
+              "name": "exceptionMessage",
+              "doc": "Exception message",
+              "type": "string"
+            },
+            {
+              "name": "exceptionStackTrace",
+              "doc": "Optional stacktrace",
+              "type": ["null", "string"],
+              "default": "null"
+            },
+            {
+              "name": "rawValue",
+              "doc": "Raw value",
+              "type": [
+                "null",
+                "bytes"
+              ],
+              "default": "null"
+            },
+            {
+              "name": "offset",
+              "doc": "Offset",
+              "type": [
+                "null",
+                "long"
+              ],
+              "default": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
       "name": "postconditions",
       "doc": "Postconditions of test case",
       "type": {

@@ -24,6 +24,7 @@ public class KafkaxSamplerTest {
                         .build()
                 )
                 .setPayload(new ArrayList<>())
+                .setErrors(new ArrayList<>())
                 .setPreconditions(KafkaxPreconditions.newBuilder()
                         .setConsumerContinueAtFail(null)
                         .setConsumerPollTime(null)
@@ -52,7 +53,7 @@ public class KafkaxSamplerTest {
         };
         for (int i = 0 ; i < 4; i++) {
             String s = "value" + i;
-            sampler.addKafkaxRunPayload(run, i, "key" + i, s, s.getBytes(), null);
+            sampler.addResult(run, i, null, "key" + i, s, s.getBytes());
         }
         System.out.println(run);
     }

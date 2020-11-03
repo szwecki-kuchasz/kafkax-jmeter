@@ -180,6 +180,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                         .build()
                 )
                 .setPayload(new ArrayList<>())
+                .setErrors(new ArrayList<>())
                 .setPreconditions(KafkaxPreconditions.newBuilder()
                         .setConsumerContinueAtFail(null)
                         .setConsumerPollTime(null)
@@ -203,7 +204,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
         return run;
     }
 
-    protected void addKafkaxRunPayload(KafkaxRun run, int counter, CharSequence key, CharSequence value, byte[] rawValue, Long offset) {
+    protected void addResult(KafkaxRun run, int counter, Long offset, CharSequence key, CharSequence value, byte[] rawValue) {
         run.getPayload().add(
                 KafkaxPayload.newBuilder()
                         .setCounter(counter)
@@ -215,6 +216,22 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                         .setOffset(offset)
                         .build()
         );
+    }
+
+    protected void addError(KafkaxRun run, int counter, Long offset, Exception e, byte[] rawValue) {
+        run.getErrors()
+                .add(
+                        KafkaxFail.newBuilder()
+                                .setCounter(counter)
+                                .setRawValue(rawValue != null
+                                        ? ByteBuffer.wrap(rawValue)
+                                        : null)
+                                .setOffset(offset)
+                                .setException(e.getClass().getCanonicalName())
+                                .setExceptionMessage(e.getMessage())
+                                .setExceptionStackTrace(ExceptionHelper.getStackTrace(e))
+                                .build()
+                );
     }
 
 }

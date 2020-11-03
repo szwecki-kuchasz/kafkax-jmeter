@@ -53,7 +53,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         setupTestException = null;
         consumerGroup = getParam(context, CONSUMER_GROUP);
         getProps().put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroup);
-        clientId =  getParam(context, CLIENT_ID);
+        clientId = getParam(context, CLIENT_ID);
         if (!isEmpty(clientId)) {
             getProps().put(ConsumerConfig.CLIENT_ID_CONFIG, clientId);
         }
@@ -108,10 +108,9 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
             consumer.subscribe(topics);
             int totalRecords = 0, errorCount = 0;
             long totalSize = 0;
-            long startTime = System.currentTimeMillis(), stopTime = startTime;
-            Exception savedException = null;
-
+            long startTime = System.currentTimeMillis(), stopTime;
             boolean enough = false, timeIsOver = false, broken = false;
+            Exception savedException = null;
 
             WHOLE_LOOP:
             while (!timeIsOver
@@ -121,25 +120,29 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                     needFirstPoll = false;
                 }
                 ConsumerRecords<String, byte[]> consumerRecords = consumer.poll(Duration.ofMillis(pollTime));
-                int recCount = consumerRecords.count();
-                if (recCount > 0) {
-                    for (ConsumerRecord<String, byte[]> record : consumerRecords) {
-                        totalSize += record.value().length;
-                        try {
-                            processRecord(totalRecords++, record.key(), record.value(), kafkaxRun, record.offset());
-                        } catch (Exception e) {
-                            savedException = e;
-                            errorCount++;
-                            if (!continueAtFail) {
-                                broken = true;
-                                break WHOLE_LOOP;
-                            }
+                for (ConsumerRecord<String, byte[]> record : consumerRecords) {
+                    final byte[] value = record.value();
+                    totalSize += value.length;
+                    final long offset = record.offset();
+                    try {
+                        final String key = record.key();
+                        final String processed = processRecord(value);
+                        addResult(kafkaxRun, totalRecords, offset, key, processed, value);
+                        totalRecords++;
+                    } catch (Exception e) {
+                        addError(kafkaxRun, totalRecords, offset, e, value);
+                        totalRecords++;
+                        savedException = e;
+                        errorCount++;
+                        if (!continueAtFail) {
+                            broken = true;
+                            break WHOLE_LOOP;
                         }
                     }
-                    // we should check this condition in previous 'for' loop, but some already downloaded records would be lost
-                    if (totalRecords >= limit) {
-                        enough = true;
-                    }
+                }
+                // we should check this condition in previous 'for' loop, but some already downloaded records would be lost
+                if (totalRecords >= limit) {
+                    enough = true;
                 }
                 stopTime = System.currentTimeMillis();
                 timeIsOver = stopTime > startTime + totalPollTime;
@@ -188,7 +191,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
         return pollTime;
     }
 
-    protected abstract void processRecord(int recordNumber, String key, byte[] value, KafkaxRun kafkaxRun, Long offset) throws Exception;
+    protected abstract String processRecord(byte[] value) throws Exception;
 
     @Override
     public void teardownTest(JavaSamplerContext context) {
