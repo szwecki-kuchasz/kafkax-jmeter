@@ -127,7 +127,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                     try {
                         final String key = record.key();
                         final String processed = processRecord(value);
-                        addResult(kafkaxRun, totalRecords, offset, key, processed, value);
+                        addResult(kafkaxRun, totalRecords, offset, key, processed, value, record.timestamp());
                         totalRecords++;
                     } catch (Exception e) {
                         getNewLogger().error("tu sie wywalilo ");

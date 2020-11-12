@@ -210,7 +210,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                 .build();
     }
 
-    protected void addResult(KafkaxRun run, int counter, Long offset, CharSequence key, CharSequence value, byte[] rawValue) {
+    protected void addResult(KafkaxRun run, int counter, Long offset, CharSequence key, CharSequence value, byte[] rawValue, long timestamp) {
         try {
             run.getPayload().add(
                     KafkaxPayload.newBuilder()
@@ -221,6 +221,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                                     ? ByteBuffer.wrap(rawValue)
                                     : null)
                             .setOffset(offset)
+                            .setTimestamp(timestamp)
                             .build()
             );
         } catch (Exception surprise) {

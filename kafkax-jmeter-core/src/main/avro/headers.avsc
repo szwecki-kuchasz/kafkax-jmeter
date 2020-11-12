@@ -147,6 +147,11 @@
                 "long"
               ],
               "default": "null"
+            },
+            {
+              "name": "timestamp",
+              "doc": "Record timestamp",
+              "type": "long"
             }
           ]
         }

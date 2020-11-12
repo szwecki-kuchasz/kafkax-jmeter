@@ -53,7 +53,7 @@ public class KafkaxSamplerTest {
         };
         for (int i = 0 ; i < 4; i++) {
             String s = "value" + i;
-            sampler.addResult(run, i, null, "key" + i, s, s.getBytes());
+            sampler.addResult(run, i, null, "key" + i, s, s.getBytes(), System.currentTimeMillis());
         }
         try {
             throw new IllegalStateException("nevermind");

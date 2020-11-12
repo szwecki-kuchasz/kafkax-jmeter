@@ -114,7 +114,7 @@ public abstract class KafkaxProducer extends KafkaxSampler {
         addResult(kafkaxRun
                 , 0 // do not change, value 0 is OK, there is only one record
                 , offset, key, message, bytes
-        );
+                , System.currentTimeMillis());
 
         kafkaxRun.getPostconditions().setRecordCount(1);
         kafkaxRun.getPostconditions().setSize((long)bytes.length);
