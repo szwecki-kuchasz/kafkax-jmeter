@@ -6,6 +6,8 @@ import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.joda.time.DateTime;
+import pl.w93c.kafkaxjmeter.helpers.AvroToStringCorrectionHelper;
 import pl.w93c.kafkaxjmeter.helpers.ExceptionHelper;
 import pl.w93c.kafkaxjmeter.run.*;
 
@@ -167,12 +169,12 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
 
     @SuppressWarnings("unused")
     protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
-        run.getKafkaParameters().setEndTime(System.currentTimeMillis());
-        sampleResult.setRequestHeaders(run.toString());
+        run.getKafkaParameters().setEndTime(new DateTime());
+        sampleResult.setRequestHeaders(AvroToStringCorrectionHelper.correctAvroTimeStamp(run.toString()));
         sampleResult.setResponseHeaders("See: Request headers");
         sampleResult.setSentBytes(run.getPostconditions().getSize());
         sampleResult.setResponseData("See: Request body", ENCODING);
-        sampleResult.setSamplerData(run.getPayload().toString());
+        sampleResult.setSamplerData(AvroToStringCorrectionHelper.correctAvroTimeStamp(run.getPayload().toString()));
     }
 
     private KafkaxRun createRun() {
@@ -181,7 +183,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                         .setBrokers(bootstrap)
                         .setTopic(NOT_SET_YET)
                         .setMock(mock)
-                        .setStartTime(System.currentTimeMillis())
+                        .setStartTime(new DateTime())
                         .setEndTime(null)
                         .setSsl(ssl)
                         .build()
@@ -221,7 +223,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                                     ? ByteBuffer.wrap(rawValue)
                                     : null)
                             .setOffset(offset)
-                            .setTimestamp(timestamp)
+                            .setTimestamp(new DateTime())
                             .build()
             );
         } catch (Exception surprise) {

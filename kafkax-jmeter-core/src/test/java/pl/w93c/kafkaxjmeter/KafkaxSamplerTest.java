@@ -1,6 +1,7 @@
 package pl.w93c.kafkaxjmeter;
 
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
+import org.joda.time.DateTime;
 import org.junit.Test;
 import pl.w93c.kafkaxjmeter.run.KafkaParameters;
 import pl.w93c.kafkaxjmeter.run.KafkaxPostconditions;
@@ -18,7 +19,7 @@ public class KafkaxSamplerTest {
                         .setBrokers("broker.com:9093")
                         .setTopic("ourTopic")
                         .setMock(false)
-                        .setStartTime(System.currentTimeMillis())
+                        .setStartTime(new DateTime())
                         .setEndTime(null)
                         .setSsl(true)
                         .build()

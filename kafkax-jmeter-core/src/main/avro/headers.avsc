@@ -34,12 +34,21 @@
           {
             "name": "startTime",
             "doc": "Start time - millis since Jan 1 1970",
-            "type": "long"
+            "type" : {
+              "type" : "long",
+              "logicalType" : "timestamp-millis"
+            }
           },
           {
             "name": "endTime",
             "doc": "End time - millis since Jan 1 1970",
-            "type": ["null", "long"],
+            "type": [
+              "null",
+              {
+                "type": "long",
+                "logicalType": "timestamp-millis"
+              }
+            ],
             "default": "null"
           }
         ]
@@ -55,25 +64,37 @@
           {
             "name": "consumerPollTime",
             "doc": "Time for polling from topic",
-            "type": ["null", "long"],
+            "type": [
+              "null",
+              "long"
+            ],
             "default": "null"
           },
           {
             "name": "consumerTotalPollTime",
             "doc": "Total time for consuming from topic",
-            "type": ["null", "long"],
+            "type": [
+              "null",
+              "long"
+            ],
             "default": "null"
           },
           {
             "name": "consumerRecordLimit",
             "doc": "Limit of processed record",
-            "type": ["null", "int"],
+            "type": [
+              "null",
+              "int"
+            ],
             "default": "null"
           },
           {
             "name": "consumerContinueAtFail",
             "doc": "Continue after exception at processing record",
-            "type": ["null", "boolean"],
+            "type": [
+              "null",
+              "boolean"
+            ],
             "default": "null"
           },
           {
@@ -151,7 +172,10 @@
             {
               "name": "timestamp",
               "doc": "Record timestamp",
-              "type": "long"
+              "type" : {
+                "type" : "long",
+                "logicalType" : "timestamp-millis"
+              }
             }
           ]
         }
@@ -179,13 +203,19 @@
             {
               "name": "exceptionMessage",
               "doc": "Exception message",
-              "type": ["null", "string"],
+              "type": [
+                "null",
+                "string"
+              ],
               "default": "null"
             },
             {
               "name": "exceptionStackTrace",
               "doc": "Optional stacktrace",
-              "type": ["null", "string"],
+              "type": [
+                "null",
+                "string"
+              ],
               "default": "null"
             },
             {
@@ -232,25 +262,37 @@
           {
             "name": "errorCount",
             "doc": "Count of errors",
-            "type": ["null", "int"],
+            "type": [
+              "null",
+              "int"
+            ],
             "default": "null"
           },
           {
             "name": "endConditionCount",
             "doc": "End of consuming because record count limit reached",
-            "type": ["null", "boolean"],
+            "type": [
+              "null",
+              "boolean"
+            ],
             "default": "null"
           },
           {
             "name": "endConditionTime",
             "doc": "End of consuming because time limit reached",
-            "type": ["null", "boolean"],
+            "type": [
+              "null",
+              "boolean"
+            ],
             "default": "null"
           },
           {
             "name": "endConditionException",
             "doc": "End of consuming because exception at process record",
-            "type": ["null", "boolean"],
+            "type": [
+              "null",
+              "boolean"
+            ],
             "default": "null"
           }
         ]
