@@ -3,6 +3,7 @@ package pl.w93c.kafkaxjmeter;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.joda.time.DateTime;
 import org.junit.Test;
+import pl.w93c.kafkaxjmeter.helpers.KafkaxRunJsonSplitter;
 import pl.w93c.kafkaxjmeter.run.KafkaParameters;
 import pl.w93c.kafkaxjmeter.run.KafkaxPostconditions;
 import pl.w93c.kafkaxjmeter.run.KafkaxPreconditions;
@@ -61,6 +62,9 @@ public class KafkaxSamplerTest {
         } catch (Exception expected) {
             sampler.addError(run, 4, null, expected, "NeverMind".getBytes());
         }
-        System.out.println(run);
+
+        System.out.println(KafkaxRunJsonSplitter.printKafkaxRun(run));
+
     }
+
 }

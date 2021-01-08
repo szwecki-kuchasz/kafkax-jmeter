@@ -17,24 +17,24 @@ public class ParamsParser {
         try {
             text = text.replace(',', '.');
             return Double.parseDouble(text);
-        } catch (NumberFormatException nfe) {
+        } catch (RuntimeException nfe) {
             return 0.0;
         }
     }
 
-    public static double toFloat(String text) {
+    public static float toFloat(String text) {
         try {
             text = text.replace(',', '.');
             return Float.parseFloat(text);
-        } catch (NumberFormatException nfe) {
-            return 0.0;
+        } catch (RuntimeException nfe) {
+            return 0.0f;
         }
     }
 
     public static long toLong(String text) {
         try {
             return Long.parseLong(text);
-        } catch (NumberFormatException nfe) {
+        } catch (RuntimeException nfe) {
             return 0L;
         }
     }
@@ -42,7 +42,7 @@ public class ParamsParser {
     public static int toInt(String text) {
         try {
             return Integer.parseInt(text);
-        } catch (NumberFormatException nfe) {
+        } catch (RuntimeException nfe) {
             return 0;
         }
     }
@@ -53,10 +53,10 @@ public class ParamsParser {
             try {
                 // najpierw próbujemy jako liczbe bez ułamka, żeby nie wprowadzać zbędnie scale = 1 z double'a
                 return BigDecimal.valueOf(Long.parseLong(text));
-            } catch (NumberFormatException e1) {
+            } catch (RuntimeException e1) {
                 return BigDecimal.valueOf(Double.parseDouble(text));
             }
-        } catch (NumberFormatException e) {
+        } catch (RuntimeException e) {
             return BigDecimal.ZERO;
         }
     }

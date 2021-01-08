@@ -7,8 +7,8 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.joda.time.DateTime;
-import pl.w93c.kafkaxjmeter.helpers.AvroToStringCorrectionHelper;
 import pl.w93c.kafkaxjmeter.helpers.ExceptionHelper;
+import pl.w93c.kafkaxjmeter.helpers.KafkaxRunJsonSplitter;
 import pl.w93c.kafkaxjmeter.run.*;
 
 import java.nio.ByteBuffer;
@@ -134,9 +134,9 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
     public final SampleResult runTest(JavaSamplerContext context) {
         KafkaxRun run = createRun();
         SampleResult sampleResult = new SampleResult();
-        beforeRun(context, sampleResult, run);
         sampleResult.sampleStart();
         try {
+            beforeRun(context, sampleResult, run);
             runTestImpl(context, run);
             afterSuccess(sampleResult);
         } catch (Exception e) {
@@ -170,11 +170,11 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
     @SuppressWarnings("unused")
     protected void afterRun(JavaSamplerContext context, SampleResult sampleResult, KafkaxRun run) {
         run.getKafkaParameters().setEndTime(new DateTime());
-        sampleResult.setRequestHeaders(AvroToStringCorrectionHelper.correctAvroTimeStamp(run.toString()));
+        sampleResult.setRequestHeaders(KafkaxRunJsonSplitter.printKafkaxRun(run));
         sampleResult.setResponseHeaders("See: Request headers");
         sampleResult.setSentBytes(run.getPostconditions().getSize());
         sampleResult.setResponseData("See: Request body", ENCODING);
-        sampleResult.setSamplerData(AvroToStringCorrectionHelper.correctAvroTimeStamp(run.getPayload().toString()));
+        sampleResult.setSamplerData(KafkaxRunJsonSplitter.printPayload(run));
     }
 
     private KafkaxRun createRun() {
@@ -223,7 +223,7 @@ public abstract class KafkaxSampler extends AbstractJavaSamplerClient {
                                     ? ByteBuffer.wrap(rawValue)
                                     : null)
                             .setOffset(offset)
-                            .setTimestamp(new DateTime())
+                            .setTimestamp(new DateTime(timestamp))
                             .build()
             );
         } catch (Exception surprise) {

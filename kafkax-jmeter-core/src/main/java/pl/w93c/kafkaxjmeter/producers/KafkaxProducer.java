@@ -15,7 +15,6 @@
  */
 package pl.w93c.kafkaxjmeter.producers;
 
-//import com.google.common.base.Strings;
 import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;

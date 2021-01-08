@@ -144,7 +144,11 @@
             {
               "name": "key",
               "doc": "Key",
-              "type": "string"
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": "null"
             },
             {
               "name": "value",

@@ -130,9 +130,7 @@ public abstract class KafkaxConsumer extends KafkaxSampler {
                         addResult(kafkaxRun, totalRecords, offset, key, processed, value, record.timestamp());
                         totalRecords++;
                     } catch (Exception e) {
-                        getNewLogger().error("tu sie wywalilo ");
                         addError(kafkaxRun, totalRecords, offset, e, value);
-                        getNewLogger().error("doszlo");
                         totalRecords++;
                         savedException = e;
                         errorCount++;
