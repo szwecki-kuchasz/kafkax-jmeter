@@ -1,0 +1,78 @@
+{
+  "namespace": "pl.w93c.kafkaxjmeter.examples",
+  "type": "record",
+  "name": "ComplexExample",
+  "doc": "Complex data examples",
+  "fields": [
+    {
+      "name": "booleanRequired",
+      "type": "boolean"
+    },
+    {
+      "name": "booleanOptional",
+      "type": [
+        "null",
+        "boolean"
+      ],
+      "default": "null"
+    },
+    {
+      "name": "longRequired",
+      "type": "long"
+    },
+    {
+      "name": "longOptional",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": "null"
+    },
+    {
+      "name": "timestampMillisRequired",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "timestampMillisOptional",
+      "type": [
+        "null",
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+      ],
+      "default": "null"
+    },
+    {
+      "name": "stringRequired",
+      "type": "string"
+    },
+    {
+      "name": "stringOptional",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": "null"
+    },
+    {
+      "name": "bigDecimalRequired",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 9,
+        "scale": 2
+      }
+    },
+    {
+      "name": "enumRequired",
+      "type": { "type": "enum",
+        "name": "Counting",
+        "symbols" : ["ENE", "DUE", "RIKE", "FAKE"]
+      }
+    }
+  ]
+}

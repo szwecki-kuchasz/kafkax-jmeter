@@ -21,7 +21,7 @@ public abstract class KafkaxSpecificAvroConsumer<T extends SpecificRecord> exten
 
     protected abstract void processRecord(T t);
 
-    private T deserializeT(byte[] data) throws Exception {
+    protected T deserializeT(byte[] data) throws Exception {
         DatumReader<T> reader
                 = new SpecificDatumReader<>(typeParameterClass);
         Decoder decoder = DecoderFactory.get().binaryDecoder(data, null);

@@ -31,7 +31,10 @@ public abstract class KafkaxSpecificAvroProducer<T extends SpecificRecord> exten
         BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(stream, null);
         SpecificData specificData = new SpecificData();
         specificData.addLogicalTypeConversion(new Conversions.DecimalConversion());
-        DatumWriter<T> datumWriter = new SpecificDatumWriter<>(record.getSchema(), specificData);
+        SpecificDatumWriter<T> datumWriter = new SpecificDatumWriter<>(record.getSchema(), specificData);
+
+        datumWriter.getSpecificData().addLogicalTypeConversion(new Conversions.DecimalConversion());
+
         datumWriter.write(record, encoder);
         encoder.flush();
         return stream.toByteArray();
