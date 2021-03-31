@@ -4,6 +4,9 @@ import org.assertj.core.data.Percentage;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
+import java.util.Properties;
+import java.util.stream.Stream;
+
 import static org.junit.Assert.*;
 import static pl.w93c.kafkaxjmeter.helpers.ParamsParser.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,7 +73,7 @@ public class ParamsParserTest {
 
     @Test
     public void shouldToDateTime() {
-       LocalDateTime ldt, expected;
+        LocalDateTime ldt, expected;
         ldt = toDateTime(SZTOMPEL);
         expected = new LocalDateTime(1605901621000L);
         assertThat(ldt).isEqualByComparingTo(expected);
@@ -78,6 +81,37 @@ public class ParamsParserTest {
         ldt = toDateTime(STRANGEEE);
         long now = System.currentTimeMillis();
         assertThat(ldt).isBetween(new LocalDateTime(now - 1000), new LocalDateTime(now));
+    }
+
+    @Test
+    public void shouldLoadProperties() {
+        String props = "ene=due\nrike=fake\ntorba.borba=usme smake";
+        final Properties properties = toProperties(props);
+        assertThat(properties)
+                .containsOnlyKeys("ene", "rike", "torba.borba")
+                .containsValues("due", "fake", "usme smake");
+    }
+
+    @Test
+    public void shouldDealWithLoadEmptyProperties() {
+        String props = "";
+        final Properties properties = toProperties(props);
+        assertThat(properties)
+                .isEmpty();
+    }
+
+    @Test
+    public void shouldDealWithLoadBadProperties() {
+        String props = "Idzie Wiosna Idzie Nam";
+        final Properties properties = toProperties(props);
+        assertThat(properties)
+                .containsOnlyKeys("Idzie")
+                .containsValues("Wiosna Idzie Nam");
+    }
+
+    private void printProps(Properties properties) {
+        properties.entrySet().stream()
+                .forEach(e -> System.out.println("key = " + e.getKey() + "; value = " + e.getValue()));
     }
 
 }

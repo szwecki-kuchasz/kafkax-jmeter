@@ -4,10 +4,13 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 
 public class ParamsParser {
 
@@ -92,6 +95,16 @@ public class ParamsParser {
         } else {
             return param.split(",");
         }
+    }
+
+    public static Properties toProperties(String param) {
+        final Properties p = new Properties();
+        try {
+            p.load(new StringReader(param));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return p;
     }
 
     public static boolean isEmpty(String s) {

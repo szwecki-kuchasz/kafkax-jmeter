@@ -14,7 +14,7 @@
         "null",
         "boolean"
       ],
-      "default": "null"
+      "default": null
     },
     {
       "name": "longRequired",
@@ -26,7 +26,7 @@
         "null",
         "long"
       ],
-      "default": "null"
+      "default": null
     },
     {
       "name": "timestampMillisRequired",
@@ -44,7 +44,7 @@
           "logicalType": "timestamp-millis"
         }
       ],
-      "default": "null"
+      "default": null
     },
     {
       "name": "stringRequired",
@@ -56,7 +56,7 @@
         "null",
         "string"
       ],
-      "default": "null"
+      "default": null
     },
     {
       "name": "bigDecimalRequired",
