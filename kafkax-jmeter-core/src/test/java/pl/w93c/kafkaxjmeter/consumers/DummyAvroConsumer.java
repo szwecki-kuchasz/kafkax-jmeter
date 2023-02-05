@@ -15,8 +15,4 @@ public class DummyAvroConsumer extends KafkaxSpecificAvroConsumer<SerdeData> {
         return SerdeData.class;
     }
 
-    @Override
-    protected void processRecord(SerdeData serdeData) {
-        System.out.println(serdeData.toString());
-    }
 }

@@ -10,9 +10,4 @@ public class WeatherKafkaxConsumer extends KafkaxSpecificAvroConsumer<Weather> {
         return Weather.class;
     }
 
-    @Override
-    protected void processRecord(Weather weather) {
-        System.out.println("weather record read from topic: " + weather);
-    }
-
 }

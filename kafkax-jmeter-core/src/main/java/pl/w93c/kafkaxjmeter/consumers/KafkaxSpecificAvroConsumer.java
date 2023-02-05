@@ -19,7 +19,7 @@ public abstract class KafkaxSpecificAvroConsumer<T extends SpecificRecord> exten
         return t.toString();
     }
 
-    protected abstract void processRecord(T t);
+    protected void processRecord(T t) {}
 
     protected T deserializeT(byte[] data) throws Exception {
         DatumReader<T> reader

@@ -8,9 +8,4 @@ public class ComplexExampleConsumer extends KafkaxSpecificAvroConsumer<ComplexEx
         return ComplexExample.class;
     }
 
-    @Override
-    protected void processRecord(ComplexExample complexExample) {
-        System.out.println(complexExample);
-    }
-
 }
